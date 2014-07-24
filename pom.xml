@@ -19,8 +19,14 @@
 			</plugin>
 		</plugins>
 	</build>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>onejar-maven-plugin.googlecode.com</id>
+			<url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
+		</pluginRepository>
+	</pluginRepositories>
 	<modules>
-		<module>loeader</module>
+		<module>loader</module>
 		<module>core</module>
 	</modules>
 	<dependencies>
@@ -28,6 +34,11 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.6.6</version>
 		</dependency>
 		<dependency>
 			<groupId>com.netflix.archaius</groupId>
