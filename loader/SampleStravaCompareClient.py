@@ -13,3 +13,4 @@ jd = {
 print 'submitting job: {job}'.format(job = str(jd))
 result = gmclient.submit_job('StravaCompare', json.dumps(jd), background=False)
 print 'job successfully submitted {result}'.format(result = str(result))
+print 'exception: {ex}'.format(ex=result.exception)

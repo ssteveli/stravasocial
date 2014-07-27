@@ -20,7 +20,7 @@ class StravaCompare:
         print 'building stravalib client with access_token {accessToken}'.format(accessToken=accessToken)
         self.client.access_token = accessToken
 
-    def compare(self, days=31):
+    def compare(self, days=1):
         print 'comparing {athleteId} to {compareToAthleteId}'.format(athleteId=self.athleteId, compareToAthleteId=self.compareToAthleteId)
 
         result = {
@@ -33,10 +33,16 @@ class StravaCompare:
 
         activities = self.getActivities(days=days)
 
+        count = 0
         for activity in activities:
+            count = count + 1
+            print 'processing activity {i} of {total}'.format(i=count, total=len(activities))
             dactivity = self.getDetailedActivity(activity.id)
 
+            ecount = 0
             for effort in list(dactivity.segment_efforts):
+                ecount = ecount + 1
+                print 'processing effort {i} of {total}'.format(i=ecount, total=len(list(dactivity.segment_efforts)))
                 cefforts = list(self.getEfforts(effort.segment.id, self.compareToAthleteId))
                 
                 if len(cefforts) > 0:
@@ -81,7 +87,6 @@ class StravaCompare:
 
                         }]
                     })
-                    print '{comparison}'.format(comparison = json.dumps(result))
 
         result['state'] = 'COMPLETED'
         result['completed_ts'] = int(time.time())
