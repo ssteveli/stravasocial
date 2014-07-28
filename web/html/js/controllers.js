@@ -3,21 +3,8 @@ var appControllers = angular.module('appControllers', ['ipCookie']);
 
 appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 'ipCookie',
 	function($scope, $routeParams, $http, ipCookie) {
-		
-		$scope.sessionId = ipCookie('stravaSocialSessionId');
-		
-		if ($scope.sessionId) {
-			$http.get('/api/strava/authorizations/' + $scope.sessionId + '/isvalid').
-				success(function(data) {
-					$scope.sessionIsValid = data.is_valid;
+		manageSession($scope, $http, ipCookie);
 
-					$http.get('/api/strava/athletes/' + data.athlete_id).
-						success(function(data) {
-							$scope.athlete = data;
-						});
-				});
-		}
-		
 		$scope.sendToStrava = function() {
 			return_url = window.location.protocol + 
 				'//' + 
@@ -40,3 +27,44 @@ appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 
 		};	
 	}
 ]);
+
+appControllers.controller('ComparisonController', ['$scope', '$http', '$routeParams', 'ipCookie',
+    function ($scope, $http, $routeParams, ipCookie) {
+        $scope.sessionId = ipCookie('stravaSocialSessionId');
+        $scope.comparisons = {};
+
+        if ($scope.sessionId) {
+            console.log('validating session ' + $scope.sessionId);
+            $http.get('/api/strava/authorizations/' + $scope.sessionId + '/isvalid').
+                success(function(data) {
+                    $scope.sessionIsValid = data.is_valid;
+
+                    $http.get('/api/strava/athletes/' + data.athlete_id).
+                        success(function(data) {
+                            $scope.athlete = data;
+
+                            $http.get('/api/strava/athletes/' + data.id + '/comparisons').
+                                success(function(data) {
+                                    $scope.comparisons = data;
+                                });
+                        });
+                });
+        }
+    }]);
+
+function manageSession($scope, $http, ipCookie) {
+    $scope.sessionId = ipCookie('stravaSocialSessionId');
+
+    if ($scope.sessionId) {
+        console.log('validating session ' + $scope.sessionId);
+        $http.get('/api/strava/authorizations/' + $scope.sessionId + '/isvalid').
+            success(function(data) {
+                $scope.sessionIsValid = data.is_valid;
+
+                $http.get('/api/strava/athletes/' + data.athlete_id).
+                    success(function(data) {
+                        $scope.athlete = data;
+                    });
+            });
+    }
+}
