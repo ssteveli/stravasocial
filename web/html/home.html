@@ -1,0 +1,9 @@
+<h1>Strava Social</h1>
+
+<a ng-hide="athlete" ng-click="sendToStrava()"><img src="assets/ConnectWithStrava.png" alt="Connect with Strava"/></a>
+
+<div ng-show="athlete">
+	<p><img ng-src="{{athlete.profile}}"/></p>
+	<p>Welcome {{athlete.firstname}}</p>
+	<p><button ng-click="disconnect()">Disconnect from Strava</button></p>
+</div>
