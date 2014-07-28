@@ -1,0 +1,6 @@
+docker run --rm -v /usr/local/bin/docker:/docker -v /var/run/docker.sock:/docker.sock svendowideit/samba my-data
+
+docker run --name strava-gearmand -d rgarcia/gearmand
+docker run -it --rm --volumes-from=my-data --link strava-gearmand:strava-gearmand dockerfile/python
+docker run --name strava-api -d --volumes-from=my-data --link strava-gearmand:strava-gearmand ssteveli/strava-api
+docker run --name strava-web -d --link strava-api:strava-api --volumes-from=my-data -p 80:80 ssteveli/strava-web

@@ -1,0 +1,2 @@
+docker build -t ssteveli/strava-api docker-strava-api/
+docker build -t ssteveli/strava-web docker-strava-web/
