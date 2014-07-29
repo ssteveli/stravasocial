@@ -2,7 +2,8 @@ var app = angular.module('app', [
 	'ngRoute',
     'ngTable',
 	'ipCookie',
-	'appControllers'
+	'appControllers',
+    'myFilters'
 ]);
 
 app.config(['$routeProvider', '$locationProvider',
@@ -24,3 +25,10 @@ app.config(['$routeProvider', '$locationProvider',
             });
 	}
 ]);
+
+angular.module('myFilters', []).filter('timeago', function() {
+    return function(input) {
+        console.log('here we go!');
+        return $.timeago(new Date(input));
+    }
+});
