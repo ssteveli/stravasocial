@@ -1,17 +1,32 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 
-from flask import Flask, jsonify, abort, make_response
+from flask import Flask, jsonify, abort, make_response, Response
 from flask import request
 from strava import Strava
+from pymongo import MongoClient
+from bson.json_util import dumps
 
 import json
 
 app = Flask(__name__)
 strava = Strava()
+mongo = MongoClient('192.168.1.52', 27017)
+db = mongo.stravasocial
+comparisons = db.comparisons
 
 @app.errorhandler(404) 
 def not_found(error):
     return make_response(jsonify({'error': 'not found'}), 404)
+
+@app.route('/api/strava/athletes/<int:id>/comparisons')
+def getComparisons(id):
+    athlete = strava.getAthlete(id)
+
+    if athlete is None:
+        abort(404)
+
+    print 'finding comparisons for athlete: {id}'.format(id = id)
+    return Response(dumps(comparisons.find({'athlete_id': id})), mimetype='application/json')
 
 @app.route('/api/strava/athletes/<id>')
 def getAthlete(id):
@@ -20,7 +35,7 @@ def getAthlete(id):
     if athlete is None:
         abort(404)
     else:
-        return json.dumps(athlete)
+        return Response(json.dumps(athlete), mimetype='application/json')
 
 @app.route('/api/strava/athletes/<id>/loadactivities', methods=['POST'])
 def loadAthleteActivites(id):
