@@ -20,7 +20,7 @@ class Strava:
     config = {}
     
     def __init__(self):
-        with open('/data/stravasocial/api/config.json') as config_file:
+        with open('config.json') as config_file:
             self.config = json.load(config_file)
         
     def startActivityLoad(self, id):
