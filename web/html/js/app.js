@@ -14,6 +14,10 @@ app.config(['$routeProvider', '$locationProvider',
 				templateUrl: 'home.html',
 				controller: 'MainController'
 			}).
+            when('/about', {
+                templateUrl: 'about.html',
+                controller: 'MainController'
+            }).
             when('/comparisons', {
                 templateUrl: 'comparisons.html',
                 controller: 'ComparisonController'
