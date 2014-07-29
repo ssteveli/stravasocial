@@ -33,7 +33,11 @@ class Strava:
     def getAthlete(self, id):
         athlete = athletes.find_one({'id': int(id)})
         return athlete
-    
+
+    def getAuthorization(self, id):
+        auth = authorizations.find_one({'id': id})
+        return auth
+
     def isAuthenticated(self, id):
         auth = authorizations.find_one({'id': id})
         result = {
