@@ -6,9 +6,9 @@ gmclient = gearman.GearmanClient(['strava-gearmand:4730'])
 
 jd = {
     'athlete_id': 2298968,
-    'compare_to_athlete_id': 2485249, #wendy
+    #'compare_to_athlete_id': 2485249, #wendy
     #'compare_to_athlete_id': 387103, #ben
-    #'compare_to_athlete_id': 154952, #brian
+    'compare_to_athlete_id': 154952, #brian
    'access_token': '7f8e5ab7ec53926c6165c96d64a22a589d8c48b6'
 }
 
