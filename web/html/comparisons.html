@@ -2,11 +2,10 @@
 <h2>Past Comparisons</h2>
 <table ng-table class="table">
     <tr ng-repeat="c in comparisons">
-        <td data-title="'Started Date'">{{c.started_ts * 1000 | date:'medium'}}</td>
-        <td data-title="'Completed Date/Time'">{{c.completed_ts * 1000 | date:'medium'}}</td>
-        <td data-title="'Duration'">{{c.completed_ts - c.started_ts}} seconds</td>
-        <td data-title="'Compared To Athlete Id'" style="text-align: center;"><a target="_blank" href="http://www.strava.com/athletes/{{c.compare_to_athlete_id}}">{{c.compare_to_athlete_id}}</a></td>
-        <td data-title="'Matching Segment Count'" style="text-align: center;">{{c.comparisons.length}}</td>
+        <td data-title="'Executed'">{{c.started_ts * 1000 | timeago}}</td>
+        <td data-title="'Processing time'">{{c.completed_ts - c.started_ts}} seconds</td>
+        <td data-title="'Compared to'"><a target="_blank" href="http://www.strava.com/athletes/{{c.compare_to_athlete_id}}">{{c.compare_to_athlete_id}}</a></td>
+        <td data-title="'How many segments in common?'">{{c.comparisons.length}}</td>
     </tr>
 </table>
 <a href="/">Return</a>
