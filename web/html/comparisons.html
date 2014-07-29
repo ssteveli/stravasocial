@@ -2,7 +2,7 @@
 <h2>Past Comparisons</h2>
 <table ng-table class="table">
     <tr ng-repeat="c in comparisons">
-        <td data-title="'Executed'">{{c.started_ts * 1000 | timeago}}</td>
+        <td data-title="'Executed'"><a href="/comparisons/{{c._id.$oid}}">{{c.started_ts * 1000 | timeago}}</a></td>
         <td data-title="'Processing time'">{{c.completed_ts - c.started_ts}} seconds</td>
         <td data-title="'Compared to'"><a target="_blank" href="http://www.strava.com/athletes/{{c.compare_to_athlete_id}}">{{c.compare_to_athlete_id}}</a></td>
         <td data-title="'How many segments in common?'">{{c.comparisons.length}}</td>
