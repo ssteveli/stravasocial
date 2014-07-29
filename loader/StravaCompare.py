@@ -52,7 +52,7 @@ class StravaCompare:
                             'id': effort.segment.id,
                             'name': effort.name
                         },
-                        'efforts': [{
+                        'effort': {
                             'id': effort.id,
                             'athlete': {
                                 'id': effort.athlete.id  
@@ -68,7 +68,8 @@ class StravaCompare:
                             'average_heartrate': effort.average_heartrate,
                             'max_heartrate': effort.max_heartrate,
                             'average_cadence': effort.average_cadence
-                        },{
+                        },
+                        'compared_to_effort': {
                             'id': ceffort.id,
                             'athlete': {
                                 'id': ceffort.athlete.id
@@ -84,8 +85,7 @@ class StravaCompare:
                             'average_heartrate': ceffort.average_heartrate,
                             'max_heartrate': ceffort.max_heartrate,
                             'average_cadence': ceffort.average_cadence
-
-                        }]
+                        }
                     })
 
         result['state'] = 'COMPLETED'
@@ -110,4 +110,6 @@ class StravaCompare:
 
 
 if __name__ == '__main__':
-    StravaCompare(2298968, 2485249, '7f8e5ab7ec53926c6165c96d64a22a589d8c48b6').compare()
+    #StravaCompare(2298968, 2485249, '7f8e5ab7ec53926c6165c96d64a22a589d8c48b6').compare() #wendy
+    StravaCompare(2298968, 387103, '7f8e5ab7ec53926c6165c96d64a22a589d8c48b6').compare() #ben
+

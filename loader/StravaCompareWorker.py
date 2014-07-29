@@ -9,7 +9,7 @@ from pymongo import MongoClient
 client = MongoClient('mongodb1', 27017)
 db = client.stravasocial
 comparisons = db.comparisons
-gmworker = gearman.GearmanWorker(['192.168.59.103:4730'])
+gmworker = gearman.GearmanWorker(['strava-gearmand:4730'])
 
 def task_listener_compare(worker, job):
     print 'received job: {job}'.format(job=str(job))
