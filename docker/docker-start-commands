@@ -6,5 +6,10 @@ docker run --name strava-gearmand -d rgarcia/gearmand
 # gearman work instance for testing python workers
 docker run -it --rm --volumes-from=my-data --link strava-gearmand:strava-gearmand dockerfile/python
 
+docker stop strava-api
+docker rm strava-api
 docker run --name strava-api -d --volumes-from=my-data --link strava-gearmand:strava-gearmand ssteveli/strava-api
+
+docker stop strava-web
+docker rm strava-web
 docker run --name strava-web -d --link strava-api:strava-api --volumes-from=my-data -p 80:80 ssteveli/strava-web
