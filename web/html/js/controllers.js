@@ -53,16 +53,77 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
 
             return 0;
         }
+
+        $scope.deleteComparison = function(idx) {
+            var record_to_delete = $scope.comparisons[idx];
+
+            $http.delete('/api/strava/comparisons/' + record_to_delete.id).
+                success(function(data) {
+                    $scope.comparisons.splice(idx, 1);
+                });
+        }
+
+        $scope.$on('newlaunch', function(event, data) {
+           console.log('event received: ' + JSON.stringify(data));
+            $scope.comparisons.unshift(data);
+        });
+
+        $scope.$on('errorlaunch', function(event, error) {
+           console.log('error received: ', JSON.stringify(error));
+           console.log('error received: ', JSON.stringify(error));
+        });
     }]);
 
-appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$routeParams',
-    function ($scope, $http, $routeParams) {
+appControllers.controller('NewComparisonController', ['$scope', '$http',
+    function($scope, $http) {
+        $scope.days_ago = 1;
+
+        $scope.openLaunch = function() {
+          $scope.showDialog = true;
+        };
+
+        $scope.closeLaunch = function() {
+            $scope.showDialog = false;
+        }
+
+        $scope.submitLaunch = function() {
+            console.log('we should launch something!');
+            $scope.showDialog = false;
+
+            req = {
+                'compare_to_athlete_id': $scope.compare_to_athlete_id,
+                'days': $scope.days_ago
+            };
+
+            $http.post('/api/strava/comparisons', {
+                'compare_to_athlete_id': $scope.compare_to_athlete_id,
+                'days': $scope.days_ago
+            }).success(function (data) {
+                $scope.$emit('newlaunch', data);
+            }).error(function(error) {
+                console.log('error');
+                $scope.$emit('errorlaunch', error);
+            })
+        };
+    }]);
+
+appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$routeParams', '$timeout',
+    function ($scope, $http, $routeParams, $timeout) {
         $scope.comparison = {};
 
-        $http.get('/api/strava/comparisons/' + $routeParams.comparisonId).
-            success(function (data) {
-                $scope.comparison = data;
-            });
+        var retrieveComparisons = function () {
+            $http.get('/api/strava/comparisons/' + $routeParams.comparisonId).
+                success(function (data) {
+                    $scope.comparison = data;
+
+                    if (data.state == 'Running') {
+                        $timeout(retrieveComparisons, 1000)
+                    }
+                });
+        }
+
+        // initial retrieval
+        retrieveComparisons();
     }]);
 
 function manageSession($scope, $http, ipCookie) {

@@ -3,33 +3,36 @@ __author__ = 'ssteveli'
 from stravalib import Client
 from datetime import date, timedelta
 import time
-import json
 import logging
+from timing import timing
 
 logging.basicConfig(level=50)
 
 class StravaCompare:
-    client = Client()
-    athleteId = -1
-    compareToAthleteId = -1
 
-    def __init__(self, athleteId, compareToAthleteId, accessToken):
-        self.athleteId = athleteId
-        self.compareToAthleteId = compareToAthleteId
+    def __init__(self, athlete_id=None, compare_to_athlete_id=None, access_token=None, id=None, callback=None):
+        self.athlete_id = athlete_id
+        self.compare_to_athlete_id = compare_to_athlete_id
+        self.access_token = access_token
+        self.id = id
+        self.callback = callback
 
-        print 'building stravalib client with access_token {accessToken}'.format(accessToken=accessToken)
-        self.client.access_token = accessToken
+        print 'building stravalib client with access_token {access_token}'.format(access_token=access_token)
+        self.client = Client()
+        self.client.access_token = self.access_token
 
-    def compare(self, days=3):
-        print 'comparing {athleteId} to {compareToAthleteId}'.format(athleteId=self.athleteId, compareToAthleteId=self.compareToAthleteId)
+    @timing
+    def compare(self, days=1):
+        print 'comparing {athlete_id} to {compare_to_athlete_id}'.format(athlete_id=self.athlete_id, compare_to_athlete_id=self.compare_to_athlete_id)
 
         result = {
             'started_ts': int(time.time()),
             'state': 'RUNNING',
-            'athlete_id': self.athleteId,
-            'compare_to_athlete_id': self.compareToAthleteId,
+            'athlete_id': self.athlete_id,
+            'compare_to_athlete_id': self.compare_to_athlete_id,
             'comparisons': []
         }
+        self.fireCallback('started', state='Running', started_ts=result['started_ts'])
 
         activities = self.getActivities(days=days)
 
@@ -37,6 +40,8 @@ class StravaCompare:
         for activity in activities:
             count = count + 1
             print 'processing activity {i} of {total}'.format(i=count, total=len(activities))
+            self.fireCallback('activity', current_activity_idx=count, total_activities=len(activities))
+
             dactivity = self.getDetailedActivity(activity.id)
 
             ecount = 0
@@ -45,15 +50,15 @@ class StravaCompare:
                 print 'processing effort {i} of {total}'.format(i=ecount, total=len(list(dactivity.segment_efforts)))
 
                 if self.segmentNotProcessedAlready(effort.segment.id, result['comparisons']):
-                    cefforts = list(self.getEfforts(effort.segment.id, self.compareToAthleteId))
+                    cefforts = list(self.getEfforts(effort.segment.id, self.compare_to_athlete_id))
 
                     if len(cefforts) > 0:
                         ceffort = cefforts.pop(0)
 
-                        topefforts = list(self.getEfforts(effort.segment.id, self.athleteId))
+                        topefforts = list(self.getEfforts(effort.segment.id, self.athlete_id))
                         topeffort = topefforts.pop(0)
 
-                        result['comparisons'].append({
+                        e = {
                             'segment': {
                                 'id': topeffort.segment.id,
                                 'name': topeffort.name
@@ -92,16 +97,20 @@ class StravaCompare:
                                 'max_heartrate': ceffort.max_heartrate,
                                 'average_cadence': ceffort.average_cadence
                             }
-                        })
+                        }
+                        result['comparisons'].append(e)
+                        self.fireCallback('match', effort=e)
                     else:
                         print 'skipping effort {i}, segment {s} already processed'.format(i=ecount, s=effort.segment.id)
 
         result['state'] = 'COMPLETED'
         result['completed_ts'] = int(time.time())
         print 'completed execution in {duration}ms'.format(duration=(result['completed_ts']-result['started_ts']))
+        self.fireCallback('complete', state='Completed', completed_ts=result['completed_ts'])
         return result
 
 
+    @timing
     def getActivities(self, days=31):
         print 'getting activities for the past {days}'.format(days=days)
         activities = list(self.client.get_activities(after=date.today()-timedelta(days=days)))
@@ -109,19 +118,29 @@ class StravaCompare:
 
         return activities
 
+    @timing
     def getDetailedActivity(self, activityId):
         print 'getting detailed activity for activityId: {activityId}'.format(activityId = activityId)
         return self.client.get_activity(activityId)
 
+    @timing
     def getEfforts(self, segmentId, athleteId):
         return self.client.get_segment_efforts(segmentId,athleteId,limit=1)
 
+    @timing
     def segmentNotProcessedAlready(self, segmentId, comparisons):
         for i in list(comparisons):
             if segmentId == i['segment']['id']:
                 return False
 
         return True
+
+    def fireCallback(self, type, **kwargs):
+        if self.callback is None:
+            return
+        else:
+            kwargs['id'] = self.id
+            self.callback(type, **kwargs)
 
 if __name__ == '__main__':
     #StravaCompare(2298968, 2485249, '7f8e5ab7ec53926c6165c96d64a22a589d8c48b6').compare() #wendy

@@ -1,11 +1,50 @@
 
-<h2>Past Comparisons</h2>
+<h2>Past Comparisons You've Run</h2>
 <table ng-table class="table">
     <tr ng-repeat="c in comparisons">
-        <td data-title="'Executed'"><a href="/comparisons/{{c._id.$oid}}">{{c.started_ts * 1000 | timeago}}</a></td>
+        <td data-title="'Executed'"><a href="/comparisons/{{c.id}}">{{c.started_ts * 1000 | timeago}}</a></td>
         <td data-title="'Processing time'">{{c.completed_ts - c.started_ts}} seconds</td>
-        <td data-title="'Compared to'"><a target="_blank" href="http://www.strava.com/athletes/{{c.compare_to_athlete_id}}">{{c.compare_to_athlete_id}}</a></td>
+        <td data-title="'Compared to'">
+            <a target="_blank" href="http://www.strava.com/athletes/{{c.compare_to_athlete_id}}">{{c.compare_to_athlete.firstname}} {{c.compare_to_athlete.lastname}}</a></td>
         <td data-title="'How many segments in common?'">{{c.comparisons.length}}</td>
+        <td><span class="glyphicon glyphicon-trash" ng-click="deleteComparison($index)"></span></td>
     </tr>
 </table>
-<a href="/">Return</a>
+<div ng-controller="NewComparisonController">
+    <button class="btn btn-custom btn-lg" ng-click="openLaunch()">
+        New Comparison
+    </button>
+    <div modal-show modal-visible="showDialog" class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="myModalLabel">New Athlete Comparison</h4>
+                </div>
+                <div class="modal-body">
+                    <form role="form" name="newcomparisonform">
+                        <div class="form-group">
+                            <label for="compare_to_athlete_id">Enter Athlete Id to Compare Against</label>
+                            <input class="form=control" type="number" id="compare_to_athlete_id" name="compare_to_athlete_id" ng-model="compare_to_athlete_id" required placeholder="Athlete Id"/>
+                            <span class="help-block">
+                                <span class="error" ng-show="newcomparisonform.compare_to_athlete_id.$error.number">Not a valid athlete id, must be numeric</span>
+                            </span>
+                        </div>
+                        <div class="form-group">
+                            <label for="days_ago">Number of days in the past to examine activities</label>
+                            <input class="form=control" type="number" min="1" max="10" id="days_ago" name="days_ago" ng-model="days_ago" required placeholder="Days Ago"/>
+                            <span class="help-block">
+                                <span class="error" ng-show="!newcomparisonform.days_ago.$valid">Must be between 1 and 10 days</span>
+                            </span>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" ng-click="closeLaunch()">Close</button>
+                    <button type="button" class="btn btn-custom" ng-click="submitLaunch()">Launch</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>

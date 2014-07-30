@@ -22,17 +22,37 @@ class Strava:
     def __init__(self):
         with open('config.json') as config_file:
             self.config = json.load(config_file)
-        
-    def startActivityLoad(self, id):
-        auth = authorizations.find_one({'athlete_id': int(id)})
-        
-        if auth is not None:
-            token = auth['access_token']
-            return gearmanClient.submit_job('loadStravaActivities', json.dumps({'athlete_id': id, 'access_token': token}), background=True)
-                                     
-    def getAthlete(self, id):
-        athlete = athletes.find_one({'id': int(id)})
-        return athlete
+
+    def launchComparison(self, athlete_id, compare_to_athlete_id, access_token, days=3):
+        req = {
+            'athlete_id': athlete_id,
+            'compare_to_athlete_id': compare_to_athlete_id,
+            'access_token': access_token,
+            'days': days
+        }
+        job = gearmanClient.submit_job('StravaCompare', json.dumps(req), background=True)
+        print 'job status: ' + str(gearmanClient.get_job_status(job))
+        return job
+
+    def getAthleteFromStore(self, athlete_id):
+        return athletes.find_one({'id': int(athlete_id)})
+
+    def getAthlete(self, current_athlete, requested_athlete_id):
+        # let's see if we have a local copy
+        athlete = athletes.find_one({'id': int(requested_athlete_id)})
+
+        # if not we need to go to Strava
+        if athlete is None:
+            req = urllib2.Request('https://www.strava.com/api/v3/athletes/' + str(requested_athlete_id))
+            req.add_header('Accept', 'application/json')
+            req.add_header('Authorization', 'Bearer ' + current_athlete['access_token'])
+            resp = json.loads(urllib2.urlopen(req).read())
+            resp['_id'] = resp['id']
+            athletes.save(resp)
+
+            return resp
+        else:
+            return athlete
 
     def getAuthorization(self, id):
         auth = authorizations.find_one({'id': id})

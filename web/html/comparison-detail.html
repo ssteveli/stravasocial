@@ -1,5 +1,16 @@
 
-<p>Comparison Id: {{comparison.started_ts * 1000 | timeago}}</p>
+
+<table class="table">
+    <tr>
+        <td>Started</td><td>{{comparison.started_ts*1000 | date:'medium'}}</td>
+    </tr>
+    <tr ng-show="comparison.completed_ts != undefined">
+        <td>Completed</td><td>{{comparison.completed_ts*1000 | date:'medium'}}</td>
+    </tr>
+    <tr>
+        <td>State</td><td>{{comparison.state}}</td>
+    </tr>
+</table>
 
 <h2>Segments in common</h2>
 <table ng-table class="table">

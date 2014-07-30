@@ -36,4 +36,46 @@ table tr td {
     color: red;
 }
 
+.btn-custom {
+    background-color: #FC4C02;
+    border-color: #FC4C02;
+    color: #FFFFFF;
+}
+.btn-custom:hover,
+.btn-custom:focus,
+.btn-custom:active,
+.btn-custom.active {
+    background-color: #e34402;
+    border-color: #c93d02;
+}
+.btn-custom.disabled:hover,
+.btn-custom.disabled:focus,
+.btn-custom.disabled:active,
+.btn-custom.disabled.active,
+.btn-custom[disabled]:hover,
+.btn-custom[disabled]:focus,
+.btn-custom[disabled]:active,
+.btn-custom[disabled].active,
+fieldset[disabled] .btn-custom:hover,
+fieldset[disabled] .btn-custom:focus,
+fieldset[disabled] .btn-custom:active,
+fieldset[disabled] .btn-custom.active {
+    background-color: #FC4C02;
+    border-color: #FC4C02;
+}
+
+.avatar-default {
+    height: 32px;
+    width: 32px;
+}
+.avatar-athlete {
+    border-radius: 50%;
+    background-color: #f5f5f5;
+}
+
+.avatar {
+    vertical-align: middle;
+    margin-right: 5px
+}
+
 
