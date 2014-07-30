@@ -17,4 +17,4 @@ config.properties
 .idea
 .springBeans
 .pydevproject
-
+*.pyc
