@@ -45,6 +45,9 @@ def launchComparison():
     if 'compare_to_athlete_id' not in req or strava.getAthlete(athlete, req['compare_to_athlete_id']) is None:
         abort(403, 'athlete to compare against is missing or was not found')
 
+    if athlete['id'] == req['compare_to_athlete_id']:
+        abort(403, 'you want to compare against yourself?')
+
     if is_comparison_allowed():
         # create our db record
         c = {
@@ -130,7 +133,7 @@ def getAthlete(id):
     current_athlete = validateSessionAndGetAthlete()
 
     requested_athlete = strava.getAthlete(current_athlete, id)
-     
+
     if requested_athlete is None:
         abort(404)
     else:

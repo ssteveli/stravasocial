@@ -1,5 +1,14 @@
 
 <h2>Past Comparisons You've Run</h2>
+<div ng-show="danger_message" class="alert alert-danger">
+    <button type="button" class="close" ng-click="dismissDanger()"><span aria-hidden="true">&times;</span></button>
+    {{danger_message}}
+</div>
+<div ng-show="info_message" class="alert alert-success">
+    <button type="button" class="close" ng-click="dismissInfo()"><span aria-hidden="true">&times;</span></button>
+    {{info_message}}
+</div>
+
 <table ng-table class="table">
     <tr ng-repeat="c in comparisons">
         <td data-title="'Executed'"><a href="/comparisons/{{c.id}}">{{c.started_ts * 1000 | timeago}}</a></td>
@@ -25,9 +34,10 @@
                     <form role="form" name="newcomparisonform">
                         <div class="form-group">
                             <label for="compare_to_athlete_id">Enter Athlete Id to Compare Against</label>
-                            <input class="form=control" type="number" id="compare_to_athlete_id" name="compare_to_athlete_id" ng-model="compare_to_athlete_id" required placeholder="Athlete Id"/>
+                            <input class="form=control" type="number" id="compare_to_athlete_id" name="compare_to_athlete_id" ng-model="compare_to_athlete_id" ng-change="athleteIdChanged()" required placeholder="Athlete Id"/>
                             <span class="help-block">
                                 <span class="error" ng-show="newcomparisonform.compare_to_athlete_id.$error.number">Not a valid athlete id, must be numeric</span>
+                                <span ng-show="athlete_validation">{{athlete_validation}}</span>
                             </span>
                         </div>
                         <div class="form-group">

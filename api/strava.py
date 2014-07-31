@@ -43,12 +43,18 @@ class Strava:
 
         # if not we need to go to Strava
         if athlete is None:
-            req = urllib2.Request('https://www.strava.com/api/v3/athletes/' + str(requested_athlete_id))
-            req.add_header('Accept', 'application/json')
-            req.add_header('Authorization', 'Bearer ' + current_athlete['access_token'])
-            resp = json.loads(urllib2.urlopen(req).read())
-            resp['_id'] = resp['id']
-            athletes.save(resp)
+            try:
+                req = urllib2.Request('https://www.strava.com/api/v3/athletes/' + str(requested_athlete_id))
+                req.add_header('Accept', 'application/json')
+                req.add_header('Authorization', 'Bearer ' + current_athlete['access_token'])
+                resp = json.loads(urllib2.urlopen(req).read())
+                resp['_id'] = resp['id']
+                athletes.save(resp)
+            except urllib2.HTTPError as e:
+                if e.code == 404:
+                    return None
+                else:
+                    raise
 
             return resp
         else:

@@ -15,9 +15,22 @@
 <h2>Segments in common</h2>
 <table ng-table class="table">
     <tr ng-repeat="c in comparison.comparisons">
-        <td data-title="'Segment'">{{c.segment.name}}</td>
-        <td data-title="'Distance'">{{c.effort.distance | feet}} ({{c.compared_to_effort.distance | feet}})</td>
-        <td data-title="'Time'">{{c.effort.moving_time | seconds}} ({{c.compared_to_effort.moving_time | seconds}}) <span ng-class="{'red' : (c.compared_to_effort.moving_time - c.effort.moving_time) < 0}">{{c.compared_to_effort.moving_time - c.effort.moving_time}} seconds</span></td>
+        <td data-title="'Segment'"><a target="_blank" href="http://www.strava.com/segments/{{c.segment.id}}">{{c.segment.name}}</a></td>
+        <td data-title="'Distance'">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-3">{{c.effort.distance | feet}}</div>
+                    <div class="col-md-2">({{c.compared_to_effort.distance | feet}})</div>
+                </div>
+            </div>
+        <td data-title="'Time'">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-3">{{c.effort.moving_time | seconds}}</div>
+                    <div class="col-md-3">({{c.compared_to_effort.moving_time | seconds}})</div>
+                    <div class="col-md-4"><span ng-class="{'red' : (c.compared_to_effort.moving_time - c.effort.moving_time) < 0}">{{c.compared_to_effort.moving_time - c.effort.moving_time}} seconds</span></div>
+                </div>
+            </div>
     </tr>
 </table>
 

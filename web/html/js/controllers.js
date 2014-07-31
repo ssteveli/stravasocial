@@ -64,14 +64,22 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
         }
 
         $scope.$on('newlaunch', function(event, data) {
-           console.log('event received: ' + JSON.stringify(data));
             $scope.comparisons.unshift(data);
+            $scope.info_message = 'Your comparison job has been successfully created and will process as soon as possible';
         });
 
         $scope.$on('errorlaunch', function(event, error) {
            console.log('error received: ', JSON.stringify(error));
-           console.log('error received: ', JSON.stringify(error));
+           $scope.danger_message = error.message;
         });
+
+        $scope.dismissDanger = function() {
+            $scope.danger_message = null;
+        }
+
+        $scope.dismissInfo = function() {
+            $scope.info_message = null;
+        }
     }]);
 
 appControllers.controller('NewComparisonController', ['$scope', '$http',
@@ -84,10 +92,9 @@ appControllers.controller('NewComparisonController', ['$scope', '$http',
 
         $scope.closeLaunch = function() {
             $scope.showDialog = false;
-        }
+        };
 
         $scope.submitLaunch = function() {
-            console.log('we should launch something!');
             $scope.showDialog = false;
 
             req = {
@@ -104,6 +111,17 @@ appControllers.controller('NewComparisonController', ['$scope', '$http',
                 console.log('error');
                 $scope.$emit('errorlaunch', error);
             })
+        };
+
+        $scope.athleteIdChanged = function() {
+            if ($scope.newcomparisonform.days_ago.$valid)
+                $http.get('/api/strava/athletes/' + $scope.compare_to_athlete_id).
+                    success(function (data) {
+                        $scope.athlete_validation = 'Athlete ' + data.firstname + ' ' + data.lastname + ' found';
+                    }).
+                    error(function (error) {
+                        $scope.athlete_validation = 'Athlete number ' + $scope.compare_to_athlete_id + ' was not found';
+                    });
         };
     }]);
 
