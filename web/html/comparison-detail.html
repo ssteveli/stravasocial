@@ -31,7 +31,21 @@
              </nvd3-pie-chart>
         </div>
         <div class="col-lg-6">
-            <table class="table">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-1" class="social">
+                        <fb:share-button type="box_count" href="{{location.absUrl()}}"></fb:share-button>
+                    </div>
+                    <div class="col-sm-1" class="social">
+                        <a href="https://twitter.com/share" class="twitter-share-button" data-lang="en" data-count="vertical">Tweet</a>
+                    </div>
+                    <div class="col-sm-1" class="social">
+                        <div class="g-plus" data-action="share" data-annotation="vertical-bubble" data-height="60"></div>
+                    </div>
+                </div>
+            </div>
+            <table class="table" style="margin-top: 10px;">
+
                 <tr>
                     <td>Started</td><td>{{comparison.started_ts*1000 | date:'medium'}}</td>
                 </tr>

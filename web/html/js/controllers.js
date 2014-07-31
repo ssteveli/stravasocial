@@ -125,9 +125,10 @@ appControllers.controller('NewComparisonController', ['$scope', '$http',
         };
     }]);
 
-appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$routeParams', '$timeout',
-    function ($scope, $http, $routeParams, $timeout) {
+appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$routeParams', '$timeout', '$location',
+    function ($scope, $http, $routeParams, $timeout, $location) {
         $scope.comparison = {};
+        $scope.location = $location;
 
         var retrieveComparisons = function () {
             $http.get('/api/strava/comparisons/' + $routeParams.comparisonId).
