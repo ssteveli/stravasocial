@@ -58,7 +58,7 @@ def task_listener_compare(worker, job):
             callback=handle_event
         )
         try:
-            ct.compare()
+            ct.compare(days=jd['days'])
         except urllib2.HTTPError as e:
             handle_event('error', completed_ts=int(time.time()), error_message=e.message)
 
