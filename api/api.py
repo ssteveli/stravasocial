@@ -157,6 +157,18 @@ def deleteAuthentication(id):
 def validSession(id):
     return json.dumps(strava.isAuthenticated(id))
 
+@app.route('/api/strava/stats')
+def getStats():
+    stats = {
+        'comparisons': db.comparisons.count(),
+        'athletes': db.athletes.count(),
+        'authorizations': {
+            'total': db.authorizations.count(),
+            'with_access_tokens': db.athletes.find({'access_token': { '$ne': None }}).count()
+        }
+    }
+    return Response(json.dumps(stats), mimetype='application/json')
+
 def validateSessionAndGetAthlete():
     sessionId = request.cookies.get('stravaSocialSessionId')
 
