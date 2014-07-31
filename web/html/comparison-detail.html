@@ -13,6 +13,23 @@
                 <h1>{{comparison.comparisons.length}}</h1>
             </div>
         </div>
+        <div class="col-lg-3" style="text-align: center;">
+            <h4>Win/Loss</h4>
+            <nvd3-pie-chart
+                    data="chartData"
+                    id="winLossChart"
+                    margin="10"
+                    x="xFunction()"
+                    y="yFunction()"
+                    color="colorFunction()"
+                    showLabels="true"
+                    labelType="percent"
+                    showLegend="false"
+                    donut="true"
+                    donutLabelsOutside="true">
+                <svg height="225"></svg>
+             </nvd3-pie-chart>
+        </div>
         <div class="col-lg-6">
             <table class="table">
                 <tr>
@@ -33,16 +50,6 @@
                     <td>Total Time Difference</td>
                     <td><span ng-class="{'red' : (total_time_difference) < 0}">{{total_time_difference}} seconds</span></td>
                 </tr>
-                <tr>
-                    <td>Segments Won</td><td>{{wins}} ({{((wins / comparison.comparisons.length) *100).toFixed(0)}}%)</td>
-                </tr>
-                <tr>
-                    <td>Segments Lost</td><td>{{losses}} ({{((losses / comparison.comparisons.length) *100).toFixed(0)}}%)</td>
-                </tr>
-                <tr>
-                    <td>Segments Ties</td><td>{{ties}} ({{((ties / comparison.comparisons.length) *100).toFixed(0)}}%)</td>
-                </tr>
-
             </table>
         </div>
     </div>

@@ -153,6 +153,18 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                     $scope.wins = win;
                     $scope.losses = loss;
                     $scope.ties = tied;
+                    $scope.chartData = [
+                        {
+                            'key': 'Wins',
+                            'y': win
+                        },{
+                            'key': 'Losses',
+                            'y': loss
+                        },{
+                            'key': 'Tied',
+                            'y': tied
+                        }
+                    ];
                     if (data.state == 'Running') {
                         $timeout(retrieveComparisons, 1000)
                     }
@@ -162,6 +174,24 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
         // initial retrieval
         retrieveComparisons();
 
+        $scope.xFunction = function(){
+            return function(d) {
+                return d.key;
+            };
+        }
+
+        $scope.yFunction = function(){
+            return function(d) {
+                return d.y;
+            };
+        }
+
+        var colorArray = ['lightgreen', 'red', 'lightgray'];
+        $scope.colorFunction = function() {
+            return function(d, i) {
+                return colorArray[i];
+            };
+        }
     }]);
 
 function manageSession($scope, $http, ipCookie) {

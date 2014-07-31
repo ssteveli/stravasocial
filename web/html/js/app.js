@@ -3,7 +3,8 @@ var app = angular.module('app', [
     'ngTable',
 	'ipCookie',
 	'appControllers',
-    'myFilters'
+    'myFilters',
+    'nvd3ChartDirectives'
 ]);
 
 app.config(['$routeProvider', '$locationProvider',
