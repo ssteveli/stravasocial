@@ -1,29 +1,63 @@
 
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-2"><img ng-src="{{comparison.compare_to_athlete.profile}}" onerror="handleMissingImage(this);"/></div>
+        <div class="col-lg-3"><h2>{{comparison.compare_to_athlete.firstname}} {{comparison.compare_to_athlete.lastname}}</h2></div>
+    </div>
+</div>
+<div class="container" style="margin-top: 20px;">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="jumbotron" style="text-align: center;">
+                <h3>Common Segments</h3>
+                <h1>{{comparison.comparisons.length}}</h1>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <table class="table">
+                <tr>
+                    <td>Started</td><td>{{comparison.started_ts*1000 | date:'medium'}}</td>
+                </tr>
+                <tr ng-show="comparison.completed_ts != undefined">
+                    <td>Completed</td><td>{{comparison.completed_ts*1000 | date:'medium'}}</td>
+                </tr>
+                <tr>
+                    <td>State</td><td>{{comparison.state}}</td>
+                </tr>
+                <tr>
+                    <td>Activities Examined</td>
+                    <td ng-show="comparison.state != 'Running'">{{comparison.total_activities}}</td>
+                    <td ng-show="comparison.state == 'Running'">{{comparison.current_activity_idx}} of {{comparison.total_activities}}</td>
+                </tr>
+                <tr ng-show="total_time_difference">
+                    <td>Total Time Difference</td>
+                    <td><span ng-class="{'red' : (total_time_difference) < 0}">{{total_time_difference}} seconds</span></td>
+                </tr>
+                <tr>
+                    <td>Segments Won</td><td>{{wins}} ({{((wins / comparison.comparisons.length) *100).toFixed(0)}}%)</td>
+                </tr>
+                <tr>
+                    <td>Segments Lost</td><td>{{losses}} ({{((losses / comparison.comparisons.length) *100).toFixed(0)}}%)</td>
+                </tr>
+                <tr>
+                    <td>Segments Ties</td><td>{{ties}} ({{((ties / comparison.comparisons.length) *100).toFixed(0)}}%)</td>
+                </tr>
 
-<table class="table">
-    <tr>
-        <td>Started</td><td>{{comparison.started_ts*1000 | date:'medium'}}</td>
-    </tr>
-    <tr ng-show="comparison.completed_ts != undefined">
-        <td>Completed</td><td>{{comparison.completed_ts*1000 | date:'medium'}}</td>
-    </tr>
-    <tr>
-        <td>State</td><td>{{comparison.state}}</td>
-    </tr>
-</table>
-
-<h2>Segments in common</h2>
+            </table>
+        </div>
+    </div>
+</div>
 <table ng-table class="table">
     <tr ng-repeat="c in comparison.comparisons">
         <td data-title="'Segment'"><a target="_blank" href="http://www.strava.com/segments/{{c.segment.id}}">{{c.segment.name}}</a></td>
-        <td data-title="'Distance'">
+        <td data-title="'Distance (' + comparison.compare_to_athlete.firstname + ' Distance)'">
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-3">{{c.effort.distance | feet}}</div>
                     <div class="col-md-2">({{c.compared_to_effort.distance | feet}})</div>
                 </div>
             </div>
-        <td data-title="'Time'">
+        <td data-title="'Total Time (' + comparison.compare_to_athlete.firstname + ' Total Time) Difference'">
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-3">{{c.effort.moving_time | seconds}}</div>

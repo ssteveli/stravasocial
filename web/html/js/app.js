@@ -61,7 +61,6 @@ app.directive("modalShow", function () {
             }
             else
             {
-                console.log('modalVisible: ' + attrs.modalVisible);
                 //Watch for changes to the modal-visible attribute
                 scope.$watch("modalVisible", function (newValue, oldValue) {
                     scope.showModal(newValue);

@@ -133,7 +133,26 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
             $http.get('/api/strava/comparisons/' + $routeParams.comparisonId).
                 success(function (data) {
                     $scope.comparison = data;
-
+                    var sum = 0;
+                    var win = 0;
+                    var loss = 0;
+                    var tied = 0;
+                    for (var i=0; i<data.comparisons.length; i++) {
+                        var c = data.comparisons[i];
+                        var diff = (c.compared_to_effort.moving_time - c.effort.moving_time);
+                        sum += diff;
+                        if (diff > 0) {
+                            win++;
+                        } else if (diff < 0) {
+                            loss++;
+                        } else {
+                            tied++;
+                        }
+                    }
+                    $scope.total_time_difference = sum;
+                    $scope.wins = win;
+                    $scope.losses = loss;
+                    $scope.ties = tied;
                     if (data.state == 'Running') {
                         $timeout(retrieveComparisons, 1000)
                     }
@@ -142,6 +161,7 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
 
         // initial retrieval
         retrieveComparisons();
+
     }]);
 
 function manageSession($scope, $http, ipCookie) {
@@ -159,4 +179,8 @@ function manageSession($scope, $http, ipCookie) {
                     });
             });
     }
+}
+
+function handleMissingImage(image) {
+    image.src = 'http://1.bp.blogspot.com/-An8klzluffQ/Ul8rhCqp29I/AAAAAAAAAi0/CzO4Tbe1nkk/s1600/no_image_small.png';
 }
