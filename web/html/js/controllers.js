@@ -130,6 +130,17 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
         $scope.comparison = {};
         $scope.location = $location;
 
+          $http.get('/api/admin/featureFlags/socialSharing').
+              success(function (data) {
+                  if (data == 'true')
+                    $scope.social_sharing = true;
+                  else
+                    $scope.social_sharing = false;
+              }).
+              error(function (error) {
+
+              });
+
         var retrieveComparisons = function () {
             $http.get('/api/strava/comparisons/' + $routeParams.comparisonId).
                 success(function (data) {

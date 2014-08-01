@@ -4,16 +4,22 @@ from flask import Flask, jsonify, abort, make_response, Response, request
 from strava import Strava
 from pymongo import MongoClient
 from bson.json_util import dumps, ObjectId
-from gearman import GearmanClient
+from gearman import GearmanClient, admin_client
+
+from features import FeatureFlags
 
 import json
 
 app = Flask(__name__)
 strava = Strava()
 mongo = MongoClient('192.168.1.52', 27017)
-gearmanClient = GearmanClient(['strava-gearmand:4730'])
+gearman_connections = [
+    'strava-gearmand:4730'
+]
+gearmanClient = GearmanClient(gearman_connections)
 db = mongo.stravasocial
 comparisons = db.comparisons
+ff = FeatureFlags()
 
 @app.errorhandler(401)
 def unauthorized(error):
@@ -157,7 +163,7 @@ def deleteAuthentication(id):
 def validSession(id):
     return json.dumps(strava.isAuthenticated(id))
 
-@app.route('/api/strava/stats')
+@app.route('/api/admin/stats')
 def getStats():
     stats = {
         'comparisons': db.comparisons.count(),
@@ -193,6 +199,29 @@ def validateSessionAndGetAthlete():
 
     athlete['access_token'] = authorization['access_token']
     return athlete
+
+@app.route('/api/admin/featureFlags')
+def get_feature_flags():
+    return Response(dumps(ff.get_all_features()), mimetype='application/json')
+
+@app.route('/api/admin/featureFlags/<feature>')
+def get_feature_flag(feature):
+    return Response(str(ff.isOn(feature)).lower(), mimetype='text/plain')
+
+@app.route('/api/admin/featureFlags/<feature>/turnOff', methods=['POST'])
+def turn_feature_off(feature):
+    ff.turnOff(feature)
+    return Response(str(ff.isOn(feature)).lower(), mimetype='text/plain')
+
+@app.route('/api/admin/featureFlags/<feature>/turnOn', methods=['POST'])
+def turn_feature_on(feature):
+    ff.turnOn(feature)
+    return Response(str(ff.isOn(feature)).lower(), mimetype='text/plain')
+
+@app.route('/api/admin/gearman/status')
+def get_gearman_status():
+    ac = admin_client.GearmanAdminClient(gearman_connections)
+    return Response(dumps(ac.get_status()), mimetype='application/json')
 
 def is_comparison_allowed():
     return True
