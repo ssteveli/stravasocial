@@ -1,3 +1,5 @@
+# data mgmt containers
+docker run -v /data:/data --name my-data busybox true
 docker run --rm -v /usr/local/bin/docker:/docker -v /var/run/docker.sock:/docker.sock svendowideit/samba my-data
 
 # gearmand server instance for both client & server to utilize
@@ -6,9 +8,19 @@ docker run --name strava-gearmand -d rgarcia/gearmand
 # gearman work instance for testing python workers
 docker run -it --rm --volumes-from=my-data --link strava-gearmand:strava-gearmand dockerfile/python
 
+# mongo cmd line
+docker run -it --rm --link strava-mongodb:strava-mongodb dockerfile/mongodb bash -c 'mongo --host strava-mongodb stravasocial'
+
+docker stop strava-mongodb
+docker rm strava-mongodb
+docker run --name strava-mongodb -d -v /data/db:/data/db dockerfile/mongodb
+
+# gearman for actually running the instances
+docker run -d --volumes-from=my-data --link strava-gearmand:strava-gearmand --link strava-mongodb:strava-mongodb steveli/strava-gearman-workers
+
 docker stop strava-api
 docker rm strava-api
-docker run --name strava-api -d --volumes-from=my-data --link strava-gearmand:strava-gearmand ssteveli/strava-api
+docker run --name strava-api -d --volumes-from=my-data --link strava-gearmand:strava-gearmand --link strava-mongodb:strava-mongodb ssteveli/strava-api
 
 docker stop strava-web
 docker rm strava-web
