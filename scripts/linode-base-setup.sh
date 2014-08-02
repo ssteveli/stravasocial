@@ -6,7 +6,8 @@ yum install -y puppet git
 if [ ! -d "/opt/puppet" ]; then
 	git clone https://github.com/ssteveli/puppet.git /opt/puppet
 else
-	cd /opt/puppet; git pull	
+	cd /opt/puppet; git pull
+fi
 
 puppet apply /opt/puppet/manifasts/site.pp --modulepath=/opt/puppet/modules
 
