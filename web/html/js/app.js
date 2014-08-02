@@ -18,7 +18,7 @@ app.config(['$routeProvider', '$locationProvider',
 			}).
             when('/stravareturn', {
                 templateUrl: '/stravareturn.html',
-                controller: 'StravaReturnControler'
+                controller: 'StravaReturnController'
             }).
             when('/about', {
                 templateUrl: '/about.html',
