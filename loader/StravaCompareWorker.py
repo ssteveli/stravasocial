@@ -9,7 +9,7 @@ from pymongo import MongoClient
 import urllib2
 from time import time
 
-client = MongoClient('mongodb1', 27017)
+client = MongoClient('strava-mongodb', 27017)
 db = client.stravasocial
 comparisons = db.comparisons
 gmworker = gearman.GearmanWorker(['strava-gearmand:4730'])

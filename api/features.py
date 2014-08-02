@@ -5,7 +5,7 @@ from pymongo import MongoClient
 class FeatureFlags:
 
     def __init__(self):
-        self.client = MongoClient('192.168.1.52', 27017)
+        self.client = MongoClient('strava-mongodb', 27017)
         self.db = self.client.stravasocial
         self.features = self.db.features
 

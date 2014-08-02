@@ -8,7 +8,7 @@ import datetime
 import gearman
 
 idgen = IdGenerator()
-client = MongoClient('192.168.1.52', 27017)
+client = MongoClient('strava-mongodb', 27017)
 gearmanClient =  gearman.GearmanClient(['strava-gearmand:4730'])
 db = client.stravasocial
 authorizations = db.authorizations
