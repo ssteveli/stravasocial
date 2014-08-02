@@ -1,7 +1,6 @@
 # file sharing w/boot2docker
 docker run -v /data --name my-data busybox true
 docker run --rm -v /usr/local/bin/docker:/docker -v /var/run/docker.sock:/docker.sock svendowideit/samba my-data
-
+docker build -t ssteveli/strava-web docker-strava-web/
 docker build -t steveli/strava-gearman-workers docker-gearman-workers/
 docker build -t ssteveli/strava-api docker-strava-api/
-docker build -t ssteveli/strava-web docker-strava-web/
