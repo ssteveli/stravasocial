@@ -12,7 +12,7 @@ import json
 
 app = Flask(__name__)
 strava = Strava()
-mongo = MongoClient('192.168.1.52', 27017)
+mongo = MongoClient('strava-mongodb', 27017)
 gearman_connections = [
     'strava-gearmand:4730'
 ]
