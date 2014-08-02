@@ -240,5 +240,5 @@ function manageSession($scope, $http, ipCookie) {
 }
 
 function handleMissingImage(image) {
-    image.src = 'http://1.bp.blogspot.com/-An8klzluffQ/Ul8rhCqp29I/AAAAAAAAAi0/CzO4Tbe1nkk/s1600/no_image_small.png';
+    image.src = '/no_image_small.png';
 }
