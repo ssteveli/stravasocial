@@ -1,5 +1,7 @@
 #!/bin/bash
 rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm
+rpm -ivh http://dl.fedoraproject.org/pub/epel/beta/7/x86_64/epel-release-7-0.2.noarch.rpm
+
 yum update -y
 yum install -y puppet git
 
@@ -15,5 +17,5 @@ else
 	cd /opt/puppet/modules; git pull
 fi
 
-puppet apply /opt/puppet/manifasts/site.pp --modulepath=/opt/puppet/modules
+puppet apply /opt/puppet/manifasts/site.pp --modulepath=/opt/puppet/modules > /tmp/puppet.log 2>&1
 
