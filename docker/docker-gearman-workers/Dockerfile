@@ -1,5 +1,9 @@
 FROM dockerfile/python
 
-CMD cd /data/stravasocial/api; pip install -r requirements.txt
-CMD cd /data/stravasocial/api; python /data/stravasocial/loader/StravaCompareWorker.py
+RUN wget -O /tmp/requirements.txt https://raw.githubusercontent.com/ssteveli/stravasocial/master/loader/requirements.txt
+RUN pip install -r /tmp/requirements.txt
+RUN cd /tmp; git clone https://github.com/ssteveli/stravalib.git
+RUN cd /tmp/stravalib; python setup.py install
+
+CMD cd /data/stravasocial/loader; python /data/stravasocial/loader/StravaCompareWorker.py
 
