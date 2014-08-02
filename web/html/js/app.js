@@ -13,15 +13,19 @@ app.config(['$routeProvider', '$locationProvider',
 
 		$routeProvider.
 			when('/', {
-				templateUrl: 'home.html',
+				templateUrl: '/home.html',
 				controller: 'MainController'
 			}).
+            when('/stravareturn', {
+                templateUrl: '/stravareturn.html',
+                controller: 'StravaReturnControler'
+            }).
             when('/about', {
-                templateUrl: 'about.html',
+                templateUrl: '/about.html',
                 controller: 'MainController'
             }).
             when('/comparisons', {
-                templateUrl: 'comparisons.html',
+                templateUrl: '/comparisons.html',
                 controller: 'ComparisonController'
             }).
             when('/comparisons/:comparisonId', {
