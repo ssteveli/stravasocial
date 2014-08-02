@@ -5,7 +5,7 @@
     <div class="container" style="margin-top: 25px;">
         <div class="row">
             <div class="col-lg-2">
-                <img ng-src="{{athlete.profile}}"/>
+                <img ng-src="{{athlete.profile}}" onerror="handleMissingImage(this);"/>
             </div>
             <div class="col-lg-6">
                 <p class="lead">Welcome {{athlete.firstname}}, visit <a href="/comparisons">comparisons</a> to get started</p>
