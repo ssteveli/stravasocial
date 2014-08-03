@@ -17,5 +17,17 @@ else
 	cd /opt/puppet/modules; git pull
 fi
 
+# get fresh configuration
+if [ -d "/opt/puppet/hieradata" ]; then
+	rm -rf /opt/puppet/hieradata
+fi
+
+mkdir -p /opt/puppet/hieradata
+wget \
+	--header="Authorization: token $GITHUB_ACCESS_TOKEN" \
+	-O /tmp/config.tar.gz \
+	https://api.github.com/repos/ssteveli/puppet.private/tarball/master
+tar xvf /tmp/config.tar.gz --strip-components=2 -C /opt/puppet/hieradata ssteveli-puppet.private-*/strava-compare
+	
 puppet apply /opt/puppet/manifasts/site.pp --modulepath=/opt/puppet/modules > /tmp/puppet.log 2>&1
 
