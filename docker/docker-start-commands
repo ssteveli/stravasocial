@@ -6,7 +6,7 @@ docker run --rm -v /usr/local/bin/docker:/docker -v /var/run/docker.sock:/docker
 docker run --name strava-gearmand -d rgarcia/gearmand
 
 # gearman work instance for testing python workers
-docker run -it --rm --volumes-from=my-data --link strava-gearmand:strava-gearmand dockerfile/python
+docker run -it --rm --volumes-from=my-data --link strava-gearmand:strava-gearmand --link strava-mongodb:strava-mongodb dockerfile/python
 
 # mongo cmd line
 docker run -it --rm --link strava-mongodb:strava-mongodb dockerfile/mongodb bash -c 'mongo --host strava-mongodb stravasocial'
