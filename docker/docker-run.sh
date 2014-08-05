@@ -112,6 +112,8 @@ if [ "$gearmand" -eq 1 ]; then
 	echo "starting strava-gearmand"
 	docker run --name strava-gearmand -d rgarcia/gearmand 2> /dev/null
 	
+	sleep 1
+	
 	if ! is_running strava-gearmand; then
 		echo "failed to start strava-gearmand, exiting"
 		exit 1
@@ -129,6 +131,8 @@ if [ "$mongodb" -eq 1 ]; then
 	echo "starting strava-mongodb with data dir: $MONGODB_DATA"
 	docker run --name strava-mongodb -d -v /data/db:$MONGODB_DATA dockerfile/mongodb 2> /dev/null
 	
+	sleep 5
+	
 	if ! is_running strava-mongodb; then
 		echo "failed to start strava-mongodb, exiting"
 		exit 1
@@ -141,6 +145,8 @@ if [ "$stravagearmanworker" -eq 1 ]; then
 	echo "starting strava-gearmanworker"
 	docker run -d --name strava-gearmanworker --volumes-from=my-data --link strava-gearmand:strava-gearmand --link strava-mongodb:strava-mongodb steveli/strava-gearman-workers 2> /dev/null
 
+	sleep 1
+	
 	if ! is_running strava-gearmanworker; then
 		echo "failed to start strava-gearmanworker, exiting"
 		exit 1
@@ -168,6 +174,8 @@ if [ "$stravaweb" -eq 1 ]; then
 	echo "starting strava-web"
 	docker run --name strava-web -d --link strava-api:strava-api --volumes-from=my-data -p 80:80 ssteveli/strava-web
 
+	sleep 1
+	
 	if ! is_running strava-web; then
 		echo "failed to start strava-web, exiting"
 		exit 1
