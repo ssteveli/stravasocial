@@ -52,6 +52,9 @@
                 <tr ng-show="comparison.completed_ts != undefined">
                     <td>Completed</td><td>{{comparison.completed_ts*1000 | date:'medium'}}</td>
                 </tr>
+                <tr ng-show="comparison.completed_ts != undefined">
+                    <td>Processing Time</td><td>{{comparison.completed_ts - comparison.started_ts | secondstotime}}</td>
+                </tr>
                 <tr>
                     <td>State</td><td>{{comparison.state}}</td>
                 </tr>
