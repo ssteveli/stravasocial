@@ -62,7 +62,7 @@
                 </tr>
                 <tr ng-show="total_time_difference">
                     <td>Total Time Difference</td>
-                    <td><span ng-class="{'red' : (total_time_difference) < 0}">{{total_time_difference}} seconds</span></td>
+                    <td><span ng-class="{'red' : (total_time_difference) < 0}">{{total_time_difference | secondstotime}}</span></td>
                 </tr>
             </table>
         </div>
