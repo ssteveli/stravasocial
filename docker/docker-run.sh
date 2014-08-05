@@ -39,7 +39,7 @@ while :; do
 			stravagearmanworker=1
 			gearmand=1
 			mongodb=1
-			mydata=1
+			mydata=0
 			;;
 		--env)
 			env=$2
