@@ -5,11 +5,13 @@ from pymongo import DESCENDING
 from datetime import timedelta
 import datetime
 import calendar
+from features import FeatureFlags
 
 mongo = MongoClient('strava-mongodb', 27017)
 db = mongo.stravasocial
 plans = db.plans
 comparisons = db.comparisons
+ff = FeatureFlags()
 
 class Plan():
 
@@ -28,6 +30,12 @@ class Plan():
                 "delay": 60 * 15 # default is 15 minutes
             }
 
+        if not ff.isOn('comparisons', default=True):
+            dbplan['is_execution_allowed'] = False
+            dbplan['next_execution_msg'] = 'comparisons are currently turned off'
+            dbplan['next_execution_code'] = 'DISABLED'
+            return dbplan
+
         is_execution_allowed = False
         # unlimited plans will have a delay of -1
         if dbplan['delay'] == -1:
@@ -43,15 +51,17 @@ class Plan():
 
                 if c['state'] == "Running":
                     is_execution_allowed = False
-                    dbplan['next_execution_time_msg'] = 'must wait until the current comparison is completed'
+                    dbplan['next_execution_msg'] = 'must wait until the current comparison is completed'
+                    dbplan['next_execution_code'] = 'JOB_RUNNING'
                 else:
                     diff = datetime.datetime.now() - datetime.datetime.fromtimestamp(c['started_ts'])
-                    dbplan['diff_in_seconds'] = diff.seconds
+
                     if diff.seconds < dbplan['delay']:
                         is_execution_allowed = False
 
                         dbplan['next_execution_time'] = self.time_to_millies(datetime.datetime.fromtimestamp(c['started_ts']) + datetime.timedelta(0, dbplan['delay']))/1000
-                        dbplan['next_execution_time_msg'] = 'must wait until the specified time'
+                        dbplan['next_execution_msg'] = 'must wait until the specified time'
+                        dbplan['next_execution_code'] = 'ENFORCED_DELAY'
                     else:
                         is_execution_allowed = True
 
