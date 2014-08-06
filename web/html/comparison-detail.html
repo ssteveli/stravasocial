@@ -11,6 +11,7 @@
             <div class="jumbotron" style="text-align: center;">
                 <h3>Common Segments</h3>
                 <h1>{{comparison.comparisons.length}}</h1>
+
             </div>
         </div>
         <div class="col-lg-3 winlosschart" style="text-align: center;">
@@ -28,6 +29,7 @@
                     donut="true"
                     donutLabelsOutside="true">
                 <svg height="225"></svg>
+                <small>{{wins}} win {{losses}} loss {{ties}} tie</small>
              </nvd3-pie-chart>
         </div>
         <div class="col-lg-6">
@@ -45,7 +47,6 @@
                 </div>
             </div>
             <table class="table" style="margin-top: 10px;">
-
                 <tr>
                     <td>Started</td><td>{{comparison.started_ts*1000 | date:'medium'}}</td>
                 </tr>
