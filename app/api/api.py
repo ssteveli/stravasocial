@@ -5,7 +5,7 @@ from strava import Strava
 from pymongo import MongoClient
 from bson.json_util import dumps, ObjectId
 from gearman import GearmanClient, admin_client
-
+from plans import Plan
 from features import FeatureFlags
 
 import json
@@ -19,6 +19,8 @@ gearman_connections = [
 gearmanClient = GearmanClient(gearman_connections)
 db = mongo.stravasocial
 comparisons = db.comparisons
+plans = db.plans
+
 ff = FeatureFlags()
 
 @app.errorhandler(401)
@@ -144,7 +146,14 @@ def getAthlete(id):
         abort(404)
     else:
         return Response(json.dumps(requested_athlete), mimetype='application/json')
-    
+
+@app.route('/api/strava/athletes/<id>/plan')
+def getAthletePlan(id):
+    current_athlete = validateSessionAndGetAthlete()
+
+    p = Plan(current_athlete)
+    return Response(dumps(p.get_plan()), mimetype='application/json')
+
 @app.route('/api/strava/authorization')
 def createAuthorization():
     return json.dumps(strava.createAuthorization(request.args.get('redirect_uri')))
