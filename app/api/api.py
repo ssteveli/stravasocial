@@ -56,7 +56,7 @@ def launchComparison():
     if athlete['id'] == req['compare_to_athlete_id']:
         abort(403, 'you want to compare against yourself?')
 
-    if is_comparison_allowed():
+    if is_comparison_allowed(athlete):
         # create our db record
         c = {
             'athlete_id': athlete['id'],
@@ -147,8 +147,8 @@ def getAthlete(id):
     else:
         return Response(json.dumps(requested_athlete), mimetype='application/json')
 
-@app.route('/api/strava/athletes/<id>/plan')
-def getAthletePlan(id):
+@app.route('/api/strava/athlete/plan')
+def getAthletePlan():
     current_athlete = validateSessionAndGetAthlete()
 
     p = Plan(current_athlete)
@@ -232,8 +232,12 @@ def get_gearman_status():
     ac = admin_client.GearmanAdminClient(gearman_connections)
     return Response(dumps(ac.get_status()), mimetype='application/json')
 
-def is_comparison_allowed():
-    return True
+def is_comparison_allowed(athlete):
+    p = Plan(athlete).get_plan()
+    if 'is_execution_allowed' not in p:
+        return False
+    else:
+        return p['is_execution_allowed']
 
 if __name__ == '__main__':
     app.run(host = '0.0.0.0', debug = True)

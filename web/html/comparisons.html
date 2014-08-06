@@ -8,7 +8,6 @@
     <button type="button" class="close" ng-click="dismissInfo()"><span aria-hidden="true">&times;</span></button>
     {{info_message}}
 </div>
-
 <table ng-table class="table">
     <tr ng-repeat="c in comparisons">
         <td data-title="'Executed'"><a href="/comparisons/{{c.id}}">{{c.started_ts * 1000 | timeago}}</a></td>
@@ -22,7 +21,7 @@
         <td><span class="glyphicon glyphicon-trash" ng-click="deleteComparison($index)"></span></td>
     </tr>
 </table>
-<div ng-controller="NewComparisonController">
+<div ng-controller="NewComparisonController" ng-init="scope = { isLaunchDisabled: true }">
     <button class="btn btn-custom btn-lg" ng-click="openLaunch()">
         New Comparison
     </button>
@@ -54,7 +53,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" ng-click="closeLaunch()">Close</button>
-                    <button type="button" class="btn btn-custom" ng-click="submitLaunch()">Launch</button>
+                    <button type="button" class="btn btn-custom" ng-click="submitLaunch()" ng-disabled="isLaunchDisabled">Launch</button>
                 </div>
             </div>
         </div>

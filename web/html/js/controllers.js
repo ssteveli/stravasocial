@@ -103,7 +103,19 @@ appControllers.controller('NewComparisonController', ['$scope', '$http',
         $scope.days_ago = 1;
 
         $scope.openLaunch = function() {
-          $scope.showDialog = true;
+            $http.get('/api/strava/athlete/plan').
+                success(function (data) {
+                    if (data.is_execution_allowed) {
+                        $scope.showDialog = true;
+                        $scope.isLaunchDisabled = false;
+                    } else {
+                        $scope.$emit('errorlaunch', {'message': 'Sorry, comparisons are not allowed at this time'});
+                        $scope.isLaunchDisabled = true;
+                    }
+                }).
+                error(function (data) {
+                    $scope.$emit('errorlaunch', {'message': 'Sorry, comparisons are not allowed at this time'});
+                });
         };
 
         $scope.closeLaunch = function() {
