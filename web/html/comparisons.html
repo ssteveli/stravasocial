@@ -10,7 +10,10 @@
 </div>
 <table ng-table class="table">
     <tr ng-repeat="c in comparisons">
-        <td data-title="'Executed'"><a href="/comparisons/{{c.id}}">{{c.started_ts * 1000 | timeago}}</a></td>
+        <td data-title="'Executed'">
+            <span ng-show="c.started_ts != undefined"><a href="/comparisons/{{c.id}}">{{c.started_ts * 1000 | timeago}}</a></span>
+            <span ng-show="c.started_ts == undefined"><a href="/comparisons/{{c.id}}">Waiting to start</a></span>
+        </td>
         <td data-title="'Processing time'">
             <span ng-show="c.state == 'Running'">Running</span>
             <span ng-show="c.completed_ts != undefined">{{c.completed_ts - c.started_ts | secondstotime}}</span>

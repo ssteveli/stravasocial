@@ -109,28 +109,32 @@ angular.module('myFilters', []).filter('timeago', function() {
    }
 }).filter('secondstotime', function() {
     return function (input) {
-        var i = Math.abs(input);
-
-        var hours = Math.floor(i / (60*60));
-        var divisor_for_minutes = i % (60*60);
-        var minutes = Math.floor(divisor_for_minutes / 60);
-        var divisor_for_seconds = divisor_for_minutes % 60;
-        var seconds = Math.floor(divisor_for_seconds);
-
-        var s = '';
-
-        if (hours > 0) {
-            s += hours + ' hours ';
-        }
-
-        if (minutes > 0) {
-            s += minutes + ' mins ';
-        }
-
-        if (seconds > 0) {
-            s += seconds + ' seconds';
-        }
-
-        return s;
+        return format_seconds(input);
     }
 });
+
+function format_seconds(input) {
+    var i = Math.abs(input);
+
+    var hours = Math.floor(i / (60*60));
+    var divisor_for_minutes = i % (60*60);
+    var minutes = Math.floor(divisor_for_minutes / 60);
+    var divisor_for_seconds = divisor_for_minutes % 60;
+    var seconds = Math.floor(divisor_for_seconds);
+
+    var s = '';
+
+    if (hours > 0) {
+        s += hours + ' hours ';
+    }
+
+    if (minutes > 0) {
+        s += minutes + ' mins ';
+    }
+
+    if (seconds > 0) {
+        s += seconds + ' seconds';
+    }
+
+    return s;
+}

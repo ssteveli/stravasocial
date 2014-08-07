@@ -109,7 +109,12 @@ appControllers.controller('NewComparisonController', ['$scope', '$http',
                         $scope.showDialog = true;
                         $scope.isLaunchDisabled = false;
                     } else {
-                        $scope.$emit('errorlaunch', {'message': 'Sorry, comparisons are not allowed at this time'});
+                        if (data.next_execution_code == "DISABLED")
+                            $scope.$emit('errorlaunch', {'message': 'The ability to run comparisons is currently disabled, please try again later.'});
+                        else if (data.next_execution_code == "ENFORCED_DELAY")
+                            $scope.$emit('errorlaunch', {'message': 'Sorry, you must wait before executing another comparison: ' + format_seconds(data.next_execution_time - data.last_execution_time)});
+                        else if (data.next_execution_code == "JOB_RUNNING")
+                            $scope.$emit('errorlaunch', {'message': 'Sorry, you have a comparison running which must complete first'});
                         $scope.isLaunchDisabled = true;
                     }
                 }).
@@ -252,5 +257,5 @@ function manageSession($scope, $http, ipCookie) {
 }
 
 function handleMissingImage(image) {
-    image.src = '/no_image_small.png';
+    image.src = '/assets/no_image_small.png';
 }
