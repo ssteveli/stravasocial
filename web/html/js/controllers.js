@@ -51,15 +51,10 @@ appControllers.controller('StravaReturnController', ['$scope', '$location', '$ht
     }
 ]);
 
-appControllers.controller('ComparisonController', ['$scope', '$http', '$routeParams',
-    function ($scope, $http, $routeParams) {
+appControllers.controller('ComparisonController', ['$scope', '$http', '$routeParams', '$timeout',
+    function ($scope, $http, $routeParams, $timeout) {
         $scope.comparisons = [];
 
-        $http.get('/api/strava/comparisons').
-            success(function(data) {
-                data.sort(compare);
-                $scope.comparisons = data;
-            });
 
         function compare(a, b) {
             if (a.started_ts < b.started_ts)
@@ -70,6 +65,22 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
             return 0;
         }
 
+        var loadComparisons = function () {
+            $http.get('/api/strava/comparisons').
+                success(function(data) {
+                    data.sort(compare);
+                    $scope.comparisons = data;
+
+                    for (var i=0; i<data.length; i++) {
+                        if (data[i].state == 'Running' || data[i].state == 'Submitted') {
+                            console.log('setting timeout!');
+                            $timeout(loadComparisons, 1000);
+                            break;
+                        }
+                    }
+                });
+        };
+
         $scope.deleteComparison = function(idx) {
             var record_to_delete = $scope.comparisons[idx];
 
@@ -77,7 +88,7 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
                 success(function(data) {
                     $scope.comparisons.splice(idx, 1);
                 });
-        }
+        };
 
         $scope.$on('newlaunch', function(event, data) {
             $scope.comparisons.unshift(data);
@@ -91,11 +102,14 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
 
         $scope.dismissDanger = function() {
             $scope.danger_message = null;
-        }
+        };
 
         $scope.dismissInfo = function() {
             $scope.info_message = null;
-        }
+        };
+
+        // initial data load
+        loadComparisons();
     }]);
 
 appControllers.controller('NewComparisonController', ['$scope', '$http',
@@ -112,7 +126,12 @@ appControllers.controller('NewComparisonController', ['$scope', '$http',
                         if (data.next_execution_code == "DISABLED")
                             $scope.$emit('errorlaunch', {'message': 'The ability to run comparisons is currently disabled, please try again later.'});
                         else if (data.next_execution_code == "ENFORCED_DELAY")
-                            $scope.$emit('errorlaunch', {'message': 'Sorry, you must wait before executing another comparison: ' + format_seconds(data.next_execution_time - data.last_execution_time)});
+                            $scope.$emit('errorlaunch',
+                                {'message':
+                                    'Sorry, your account requires  ' +
+                                    format_seconds(data.delay) +
+                                    ' between comparisons, you must wait another ' +
+                                    format_seconds(data.next_execution_time - (new Date().getTime()/1000))});
                         else if (data.next_execution_code == "JOB_RUNNING")
                             $scope.$emit('errorlaunch', {'message': 'Sorry, you have a comparison running which must complete first'});
                         $scope.isLaunchDisabled = true;

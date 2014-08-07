@@ -7,7 +7,7 @@ from bson.json_util import dumps, ObjectId
 from gearman import GearmanClient, admin_client
 from plans import Plan
 from features import FeatureFlags
-
+import time
 import json
 
 app = Flask(__name__)
@@ -44,6 +44,9 @@ def launchComparison():
     req = request.get_json()
     athlete = validateSessionAndGetAthlete()
 
+    if not ff.isOn('comparisons', default=True):
+        abort(403, 'comparisons are currently turned off')
+
     if 'days' not in req:
         req['days'] = 1
 
@@ -71,7 +74,9 @@ def launchComparison():
             'compare_to_athlete_id': req['compare_to_athlete_id'],
             'access_token': athlete['access_token'],
             'days': req['days'],
-            'id': str(_id)
+            'id': str(_id),
+            'submitted_ts': int(time.time()),
+            'state': 'Submitted'
         }
         job_request = gearmanClient.submit_job('StravaCompare', json.dumps(job_details), background=True)
         comparisons.update({'_id': _id}, {'$set': {'job_id': job_request.job.unique}})
