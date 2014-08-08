@@ -2,35 +2,38 @@ __author__ = 'ssteveli'
 
 from pymongo import MongoClient
 from pymongo import DESCENDING
-from datetime import timedelta
 import datetime
 import calendar
 from features import FeatureFlags
-
-mongo = MongoClient('strava-mongodb', 27017)
-db = mongo.stravasocial
-plans = db.plans
-comparisons = db.comparisons
-ff = FeatureFlags()
+import pyconfig
 
 class Plan():
 
     def __init__(self, athlete):
         self.athlete = athlete
+        self.ff = FeatureFlags()
+        self.reload()
+
+    @pyconfig.reload_hook
+    def reload(self):
+        self.mongo = MongoClient(pyconfig.get('mongodb.host', 'strava-mongodb'), int(pyconfig.get('mongodb.port', '27017')))
+        self.db = self.mongo.stravasocial
+        self.plans = self.db.plans
+        self.comparisons = self.db.comparisons
 
     def get_plan(self):
         athlete_plan = 'default'
         if 'plan' in self.athlete:
             athlete_plan = self.athlete['plan']
 
-        dbplan = plans.find_one({'_id': athlete_plan})
+        dbplan = self.plans.find_one({'_id': athlete_plan})
         if dbplan is None:
             dbplan = {
                 "_id": "default",
                 "delay": 60 * 15 # default is 15 minutes
             }
 
-        if not ff.isOn('comparisons', default=True):
+        if not self.ff.isOn('comparisons', default=True):
             dbplan['is_execution_allowed'] = False
             dbplan['next_execution_msg'] = 'comparisons are currently turned off'
             dbplan['next_execution_code'] = 'DISABLED'
@@ -42,7 +45,7 @@ class Plan():
             is_execution_allowed= True
         else:
             # get the last comparison this athlete ran
-            c = comparisons.find({"athlete_id": self.athlete['id']}).sort("started_ts", DESCENDING).limit(1).next()
+            c = self.comparisons.find({"athlete_id": self.athlete['id']}).sort("started_ts", DESCENDING).limit(1).next()
 
             if c is None:
                 is_execution_allowed = True

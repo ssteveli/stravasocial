@@ -1,11 +1,16 @@
 __author__ = 'ssteveli'
 
 from pymongo import MongoClient
+import pyconfig
 
 class FeatureFlags:
 
     def __init__(self):
-        self.client = MongoClient('strava-mongodb', 27017)
+        self.reload()
+
+    @pyconfig.reload_hook
+    def reload(self):
+        self.client = MongoClient(pyconfig.get('mongodb.host', 'strava-mongodb'), int(pyconfig.get('mongodb.port', '27017')))
         self.db = self.client.stravasocial
         self.features = self.db.features
 

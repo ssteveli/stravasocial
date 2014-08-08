@@ -9,19 +9,27 @@ from plans import Plan
 from features import FeatureFlags
 import time
 import json
+import pyconfig
 
 app = Flask(__name__)
 strava = Strava()
-mongo = MongoClient('strava-mongodb', 27017)
-gearman_connections = [
-    'strava-gearmand:4730'
-]
-gearmanClient = GearmanClient(gearman_connections)
-db = mongo.stravasocial
-comparisons = db.comparisons
-plans = db.plans
 
-ff = FeatureFlags()
+class Container():
+    def __init__(self):
+        self.reload()
+
+    @pyconfig.reload_hook
+    def reload(self):
+        self.client = MongoClient(pyconfig.get('mongodb.host', 'strava-mongodb'), int(pyconfig.get('mongodb.port', '27017')))
+        self.db = self.client.stravasocial
+        self.comparisons = self.db.comparisons
+        self.gearman_connections = [
+            'strava-gearmand:4730'
+        ]
+        self.gearmanClient = GearmanClient(self.gearman_connections)
+        self.ff = FeatureFlags()
+
+con = Container()
 
 @app.errorhandler(401)
 def unauthorized(error):
@@ -44,7 +52,7 @@ def launchComparison():
     req = request.get_json()
     athlete = validateSessionAndGetAthlete()
 
-    if not ff.isOn('comparisons', default=True):
+    if not con.ff.isOn('comparisons', default=True):
         abort(403, 'comparisons are currently turned off')
 
     if 'days' not in req:
@@ -66,7 +74,7 @@ def launchComparison():
             'compare_to_athlete_id': req['compare_to_athlete_id'],
             'comparisons': []
         }
-        _id = comparisons.insert(c)
+        _id = con.collections['comparisons'].insert(c)
 
         # now it's time to launch the gearman background job
         job_details = {
@@ -78,8 +86,8 @@ def launchComparison():
             'submitted_ts': int(time.time()),
             'state': 'Submitted'
         }
-        job_request = gearmanClient.submit_job('StravaCompare', json.dumps(job_details), background=True)
-        comparisons.update({'_id': _id}, {'$set': {'job_id': job_request.job.unique}})
+        job_request = con.gearmanClient.submit_job('StravaCompare', json.dumps(job_details), background=True)
+        con.collections['comparisons'].update({'_id': _id}, {'$set': {'job_id': job_request.job.unique}})
         c['job_id'] = job_request.job.unique
         c['id'] = str(c['_id'])
         c.pop('_id')
@@ -93,7 +101,7 @@ def getComparisonsBySession():
     athlete = validateSessionAndGetAthlete()
 
     result = []
-    for r in comparisons.find({'athlete_id': athlete['id']}):
+    for r in con.collections['comparisons'].find({'athlete_id': athlete['id']}):
         r['compare_to_athlete'] = strava.getAthlete(athlete, r['compare_to_athlete_id'])
         r['id'] = str(r['_id'])
         r.pop('_id')
@@ -106,12 +114,12 @@ def deleteComparison(comparison_id):
     athlete = validateSessionAndGetAthlete()
     try:
         _id = ObjectId(str(comparison_id))
-        comparison = comparisons.find_one({'_id': ObjectId(str(comparison_id))})
+        comparison = con.collections['comparisons'].find_one({'_id': ObjectId(str(comparison_id))})
 
         if comparison is None or athlete['id'] != comparison['athlete_id']:
             abort(404, 'the specified comparison id was not found')
 
-        comparisons.remove({'_id': ObjectId(str(comparison_id))})
+        con.collections['comparisons'].remove({'_id': ObjectId(str(comparison_id))})
         return make_response(jsonify({'message': 'comparison successfully deleted'}), 200)
 
     except:
@@ -122,7 +130,7 @@ def getComparisonBySession(comparisonid):
     athlete = validateSessionAndGetAthlete()
     try:
         _id = ObjectId(str(comparisonid))
-        comparison = comparisons.find_one({'_id': ObjectId(str(comparisonid))})
+        comparison = con.collections['comparisons'].find_one({'_id': ObjectId(str(comparisonid))})
 
         if comparison is None or athlete['id'] != comparison['athlete_id']:
             abort(404, 'the specified comparison id was not found')
@@ -180,11 +188,11 @@ def validSession(id):
 @app.route('/api/admin/stats')
 def getStats():
     stats = {
-        'comparisons': db.comparisons.count(),
-        'athletes': db.athletes.count(),
+        'comparisons': con.db.comparisons.count(),
+        'athletes': con.db.athletes.count(),
         'authorizations': {
-            'total': db.authorizations.count(),
-            'with_access_tokens': db.athletes.find({'access_token': { '$ne': None }}).count()
+            'total': con.db.authorizations.count(),
+            'with_access_tokens': con.db.athletes.find({'access_token': { '$ne': None }}).count()
         }
     }
     return Response(json.dumps(stats), mimetype='application/json')
@@ -216,25 +224,25 @@ def validateSessionAndGetAthlete():
 
 @app.route('/api/admin/featureFlags')
 def get_feature_flags():
-    return Response(dumps(ff.get_all_features()), mimetype='application/json')
+    return Response(dumps(con.ff.get_all_features()), mimetype='application/json')
 
 @app.route('/api/admin/featureFlags/<feature>')
 def get_feature_flag(feature):
-    return Response(str(ff.isOn(feature)).lower(), mimetype='text/plain')
+    return Response(str(con.ff.isOn(feature)).lower(), mimetype='text/plain')
 
 @app.route('/api/admin/featureFlags/<feature>/turnOff', methods=['POST'])
 def turn_feature_off(feature):
-    ff.turnOff(feature)
-    return Response(str(ff.isOn(feature)).lower(), mimetype='text/plain')
+    con.ff.turnOff(feature)
+    return Response(str(con.ff.isOn(feature)).lower(), mimetype='text/plain')
 
 @app.route('/api/admin/featureFlags/<feature>/turnOn', methods=['POST'])
 def turn_feature_on(feature):
-    ff.turnOn(feature)
-    return Response(str(ff.isOn(feature)).lower(), mimetype='text/plain')
+    con.ff.turnOn(feature)
+    return Response(str(con.ff.isOn(feature)).lower(), mimetype='text/plain')
 
 @app.route('/api/admin/gearman/status')
 def get_gearman_status():
-    ac = admin_client.GearmanAdminClient(gearman_connections)
+    ac = admin_client.GearmanAdminClient(con.gearman_connections)
     return Response(dumps(ac.get_status()), mimetype='application/json')
 
 def is_comparison_allowed(athlete):

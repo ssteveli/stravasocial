@@ -6,22 +6,23 @@ import urllib
 import urllib2
 import datetime
 import gearman
+import pyconfig
 
-idgen = IdGenerator()
-client = MongoClient('strava-mongodb', 27017)
-gearmanClient =  gearman.GearmanClient(['strava-gearmand:4730'])
-db = client.stravasocial
-authorizations = db.authorizations
-athletes = db.athletes
-activities = db.activities
 
 class Strava:
-    
-    config = {}
-    
+
     def __init__(self):
-        with open('config.json') as config_file:
-            self.config = json.load(config_file)
+        self.reload()
+
+    @pyconfig.reload_hook
+    def reload(self):
+        self.idgen = IdGenerator()
+        self.client = MongoClient(pyconfig.get('mongodb.host', 'strava-mongodb'), int(pyconfig.get('mongodb.port', '27017')))
+        self.gearmanClient =  gearman.GearmanClient(['strava-gearmand:4730'])
+        self.db = self.client.stravasocial
+        self.authorizations = self.db.authorizations
+        self.athletes = self.db.athletes
+        self.activities = self.db.activities
 
     def launchComparison(self, athlete_id, compare_to_athlete_id, access_token, days=3):
         req = {
@@ -30,16 +31,16 @@ class Strava:
             'access_token': access_token,
             'days': days
         }
-        job = gearmanClient.submit_job('StravaCompare', json.dumps(req), background=True)
-        print 'job status: ' + str(gearmanClient.get_job_status(job))
+        job = self.gearmanClient.submit_job('StravaCompare', json.dumps(req), background=True)
+        print 'job status: ' + str(self.gearmanClient.get_job_status(job))
         return job
 
     def getAthleteFromStore(self, athlete_id):
-        return athletes.find_one({'id': int(athlete_id)})
+        return self.athletes.find_one({'id': int(athlete_id)})
 
     def getAthlete(self, current_athlete, requested_athlete_id):
         # let's see if we have a local copy
-        athlete = athletes.find_one({'id': int(requested_athlete_id)})
+        athlete = self.athletes.find_one({'id': int(requested_athlete_id)})
 
         # if not we need to go to Strava
         if athlete is None:
@@ -49,7 +50,7 @@ class Strava:
                 req.add_header('Authorization', 'Bearer ' + current_athlete['access_token'])
                 resp = json.loads(urllib2.urlopen(req).read())
                 resp['_id'] = resp['id']
-                athletes.save(resp)
+                self.athletes.save(resp)
             except urllib2.HTTPError as e:
                 if e.code == 404:
                     return None
@@ -61,11 +62,11 @@ class Strava:
             return athlete
 
     def getAuthorization(self, id):
-        auth = authorizations.find_one({'id': id})
+        auth = self.authorizations.find_one({'id': id})
         return auth
 
     def isAuthenticated(self, id):
-        auth = authorizations.find_one({'id': id})
+        auth = self.authorizations.find_one({'id': id})
         result = {
                   'is_valid': False
         }
@@ -78,10 +79,10 @@ class Strava:
         return result
 
     def createAuthorization(self, redirectUrl):
-        id = idgen.getId()
+        id = self.idgen.getId()
         
         params = {
-                  'client_id': self.config['strava']['client_id'],
+                  'client_id': pyconfig.get('strava.client_id'),
                   'redirect_uri': redirectUrl,
                   'response_type': 'code',
                   'scope': 'public',
@@ -94,7 +95,7 @@ class Strava:
                 'url': 'https://www.strava.com/oauth/authorize?{params}'.format(params=urllib.urlencode(params)),
                 'createdTs': datetime.datetime.utcnow()
         }
-        authorizations.insert(auth)
+        self.authorizations.insert(auth)
         
         return {
                 'id': auth['id'],
@@ -103,14 +104,14 @@ class Strava:
         }
     
     def deleteAuthorization(self, id):
-        authorizations.remove({'id': id})
+        self.authorizations.remove({'id': id})
         
     def updateAuthorization(self, id, code):
-        auth = authorizations.find_one({'id': id})
+        auth = self.authorizations.find_one({'id': id})
         
         params = urllib.urlencode({
-                  'client_id': self.config['strava']['client_id'],
-                  'client_secret': self.config['strava']['client_secret'],
+                  'client_id': pyconfig.get('strava.client_id'),
+                  'client_secret': pyconfig.get('strava.client_secret'),
                   'code': code
         })
         
@@ -125,10 +126,10 @@ class Strava:
         auth['access_token'] = resp['access_token']
         auth['athlete_id'] = resp['athlete']['id']
         
-        authorizations.save(auth)
+        self.authorizations.save(auth)
         
         resp['athlete']['_id'] = resp['athlete']['id']       
-        athletes.save(resp['athlete'])
+        self.athletes.save(resp['athlete'])
         
         return {
                 'id': auth['id'],

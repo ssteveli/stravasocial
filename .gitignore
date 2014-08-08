@@ -19,3 +19,5 @@ config.properties
 .pydevproject
 *.pyc
 ._*
+localconfig.py
+
