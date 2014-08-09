@@ -74,7 +74,7 @@ def launchComparison():
             'compare_to_athlete_id': req['compare_to_athlete_id'],
             'comparisons': []
         }
-        _id = con.collections['comparisons'].insert(c)
+        _id = con.comparisons.insert(c)
 
         # now it's time to launch the gearman background job
         job_details = {
@@ -87,7 +87,7 @@ def launchComparison():
             'state': 'Submitted'
         }
         job_request = con.gearmanClient.submit_job('StravaCompare', json.dumps(job_details), background=True)
-        con.collections['comparisons'].update({'_id': _id}, {'$set': {'job_id': job_request.job.unique}})
+        con.comparisons.update({'_id': _id}, {'$set': {'job_id': job_request.job.unique}})
         c['job_id'] = job_request.job.unique
         c['id'] = str(c['_id'])
         c.pop('_id')
@@ -101,7 +101,7 @@ def getComparisonsBySession():
     athlete = validateSessionAndGetAthlete()
 
     result = []
-    for r in con.collections['comparisons'].find({'athlete_id': athlete['id']}):
+    for r in con.comparisons.find({'athlete_id': athlete['id']}):
         r['compare_to_athlete'] = strava.getAthlete(athlete, r['compare_to_athlete_id'])
         r['id'] = str(r['_id'])
         r.pop('_id')
@@ -114,12 +114,12 @@ def deleteComparison(comparison_id):
     athlete = validateSessionAndGetAthlete()
     try:
         _id = ObjectId(str(comparison_id))
-        comparison = con.collections['comparisons'].find_one({'_id': ObjectId(str(comparison_id))})
+        comparison = con.comparisons.find_one({'_id': ObjectId(str(comparison_id))})
 
         if comparison is None or athlete['id'] != comparison['athlete_id']:
             abort(404, 'the specified comparison id was not found')
 
-        con.collections['comparisons'].remove({'_id': ObjectId(str(comparison_id))})
+        con.comparisons.remove({'_id': ObjectId(str(comparison_id))})
         return make_response(jsonify({'message': 'comparison successfully deleted'}), 200)
 
     except:
@@ -130,7 +130,7 @@ def getComparisonBySession(comparisonid):
     athlete = validateSessionAndGetAthlete()
     try:
         _id = ObjectId(str(comparisonid))
-        comparison = con.collections['comparisons'].find_one({'_id': ObjectId(str(comparisonid))})
+        comparison = con.comparisons.find_one({'_id': ObjectId(str(comparisonid))})
 
         if comparison is None or athlete['id'] != comparison['athlete_id']:
             abort(404, 'the specified comparison id was not found')
