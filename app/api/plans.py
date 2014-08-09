@@ -45,11 +45,12 @@ class Plan():
             is_execution_allowed= True
         else:
             # get the last comparison this athlete ran
-            c = self.comparisons.find({"athlete_id": self.athlete['id']}).sort("started_ts", DESCENDING).limit(1).next()
+            cur = self.comparisons.find({"athlete_id": self.athlete['id']}).sort("started_ts", DESCENDING).limit(1)
 
-            if c is None:
+            if cur is None or cur.count() == 0:
                 is_execution_allowed = True
             else:
+                c = cur.next()
                 dbplan['last_execution_time'] = self.time_to_millies(datetime.datetime.fromtimestamp(c['started_ts']))/1000
 
                 if c['state'] == "Running":
