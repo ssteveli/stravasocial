@@ -2,3 +2,4 @@ stravalib
 pymongo
 gearman
 flask
+pyconfig
