@@ -87,7 +87,7 @@
                 <div class="row">
                     <div class="col-md-3">{{c.effort.moving_time | seconds}}</div>
                     <div class="col-md-3">({{c.compared_to_effort.moving_time | seconds}})</div>
-                    <div class="col-md-4"><span ng-class="{'red' : (c.compared_to_effort.moving_time - c.effort.moving_time) < 0}">{{c.compared_to_effort.moving_time - c.effort.moving_time}} seconds</span></div>
+                    <div class="col-md-4"><span ng-class="{'red' : (c.compared_to_effort.moving_time - c.effort.moving_time) < 0}">{{c.compared_to_effort.moving_time - c.effort.moving_time | secondstotime}}</span></div>
                 </div>
             </div>
     </tr>
