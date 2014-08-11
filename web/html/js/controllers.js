@@ -51,35 +51,29 @@ appControllers.controller('StravaReturnController', ['$scope', '$location', '$ht
     }
 ]);
 
-appControllers.controller('ComparisonController', ['$scope', '$http', '$routeParams', '$timeout',
-    function ($scope, $http, $routeParams, $timeout) {
+appControllers.controller('ComparisonController', ['$scope', '$http', '$routeParams', '$timeout', '$resource', '$filter', 'ngTableParams',
+    function ($scope, $http, $routeParams, $timeout, $resource, $filter, ngTableParams) {
         $scope.comparisons = [];
 
+        var data = $resource('/api/strava/comparisons').query();
+        data.$promise.then(function (data) {
+            $scope.tableParams = new ngTableParams({
+                page: 1,
+                count: 10,
+                sorting: {
+                    started_ts: 'dsc'
+                }
+            }, {
+                total: 0,
+                getData: function($defer, params) {
+                    var orderedData = params.sorting() ?
+                        $filter('orderBy')(data, params.orderBy()) : data;
+                    params.total(data.length);
+                    $defer.resolve(orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count()));
+                }
+            });
+        })
 
-        function compare(a, b) {
-            if (a.started_ts < b.started_ts)
-                return 1;
-            if (a.started_ts > b.started_ts)
-                return -1;
-
-            return 0;
-        }
-
-        var loadComparisons = function () {
-            $http.get('/api/strava/comparisons').
-                success(function(data) {
-                    data.sort(compare);
-                    $scope.comparisons = data;
-
-                    for (var i=0; i<data.length; i++) {
-                        if (data[i].state == 'Running' || data[i].state == 'Submitted') {
-                            console.log('setting timeout!');
-                            $timeout(loadComparisons, 1000);
-                            break;
-                        }
-                    }
-                });
-        };
 
         $scope.deleteComparison = function(idx) {
             var record_to_delete = $scope.comparisons[idx];
@@ -107,9 +101,6 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
         $scope.dismissInfo = function() {
             $scope.info_message = null;
         };
-
-        // initial data load
-        loadComparisons();
     }]);
 
 appControllers.controller('NewComparisonController', ['$scope', '$http',
@@ -177,25 +168,39 @@ appControllers.controller('NewComparisonController', ['$scope', '$http',
         };
     }]);
 
-appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$routeParams', '$timeout', '$location',
-    function ($scope, $http, $routeParams, $timeout, $location) {
+appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$routeParams', '$timeout', '$location', '$filter', 'ngTableParams',
+    function ($scope, $http, $routeParams, $timeout, $location, $filter, ngTableParams) {
         $scope.comparison = {};
         $scope.location = $location;
 
-          $http.get('/api/admin/featureFlags/socialSharing').
-              success(function (data) {
-                  if (data == 'true')
-                    $scope.social_sharing = true;
-                  else
-                    $scope.social_sharing = false;
-              }).
-              error(function (error) {
+        $http.get('/api/admin/featureFlags/socialSharing').
+          success(function (data) {
+              if (data == 'true')
+                $scope.social_sharing = true;
+              else
+                $scope.social_sharing = false;
+          }).
+          error(function (error) {
 
-              });
+          });
 
         var retrieveComparisons = function () {
             $http.get('/api/strava/comparisons/' + $routeParams.comparisonId).
                 success(function (data) {
+                    $scope.tableParams = new ngTableParams({
+                        page: 1,
+                        count: 10,
+                        sorting: {}
+                    }, {
+                        total: 0,
+                        getData: function($defer, params) {
+                            var orderedData = params.sorting() ?
+                                $filter('orderBy')(data.comparisons, params.orderBy()) : data.comparisons;
+                            params.total(data.comparisons.length);
+                            $defer.resolve(orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count()));
+                        }
+                    });
+
                     $scope.comparison = data;
                     var sum = 0;
                     var win = 0;

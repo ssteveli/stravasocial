@@ -1,5 +1,6 @@
 var app = angular.module('app', [
 	'ngRoute',
+    'ngResource',
     'ngTable',
 	'ipCookie',
 	'appControllers',
