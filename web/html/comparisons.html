@@ -8,8 +8,8 @@
     <button type="button" class="close" ng-click="dismissInfo()"><span aria-hidden="true">&times;</span></button>
     {{info_message}}
 </div>
-<table ng-table class="table">
-    <tr ng-repeat="c in comparisons">
+<table ng-table="tableParams" class="table">
+    <tr ng-repeat="c in $data">
         <td data-title="'Executed'">
             <span ng-show="c.started_ts != undefined"><a href="/comparisons/{{c.id}}">{{c.started_ts * 1000 | timeago}}</a></span>
             <span ng-show="c.started_ts == undefined"><a href="/comparisons/{{c.id}}">Waiting to start</a></span>

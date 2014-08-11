@@ -51,10 +51,9 @@ appControllers.controller('StravaReturnController', ['$scope', '$location', '$ht
     }
 ]);
 
-appControllers.controller('ComparisonController', ['$scope', '$http', '$routeParams', '$timeout',
-    function ($scope, $http, $routeParams, $timeout) {
+appControllers.controller('ComparisonController', ['$scope', '$http', '$routeParams', '$timeout', '$resource', 'ngTableParams',
+    function ($scope, $http, $routeParams, $timeout, $resource, ngTableParams) {
         $scope.comparisons = [];
-
 
         function compare(a, b) {
             if (a.started_ts < b.started_ts)
@@ -80,6 +79,23 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
                     }
                 });
         };
+
+        var data = $resource('/api/strava/comparisons').query();
+        data.$promise.then(function (data) {
+            data.sort(compare);
+            
+            $scope.tableParams = new ngTableParams({
+                page: 1,
+                count: 10
+            }, {
+                total: 0,
+                getData: function($defer, params) {
+                    params.total(data.length);
+                    $defer.resolve(data.slice((params.page() - 1) * params.count(), params.page() * params.count()));
+                }
+            });
+        })
+
 
         $scope.deleteComparison = function(idx) {
             var record_to_delete = $scope.comparisons[idx];
@@ -107,9 +123,6 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
         $scope.dismissInfo = function() {
             $scope.info_message = null;
         };
-
-        // initial data load
-        loadComparisons();
     }]);
 
 appControllers.controller('NewComparisonController', ['$scope', '$http',
