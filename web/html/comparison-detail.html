@@ -72,17 +72,17 @@
         </div>
     </div>
 </div>
-<table ng-table class="table">
-    <tr ng-repeat="c in comparison.comparisons">
-        <td data-title="'Segment'"><a target="_blank" href="http://www.strava.com/segments/{{c.segment.id}}">{{c.segment.name}}</a></td>
-        <td data-title="'Distance (' + comparison.compare_to_athlete.firstname + ' Distance)'">
+<table ng-table="tableParams" class="table">
+    <tr ng-repeat="c in $data">
+        <td data-title="'Segment'" sortable="'segment.name'"><a target="_blank" href="http://www.strava.com/segments/{{c.segment.id}}">{{c.segment.name}}</a></td>
+        <td data-title="'Distance (' + comparison.compare_to_athlete.firstname + ' Distance)'" sortable="'effort.distance'">
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-3">{{c.effort.distance | feet}}</div>
                     <div class="col-md-2">({{c.compared_to_effort.distance | feet}})</div>
                 </div>
             </div>
-        <td data-title="'Total Time (' + comparison.compare_to_athlete.firstname + ' Total Time) Difference'">
+        <td data-title="'Total Time (' + comparison.compare_to_athlete.firstname + ' Total Time) Difference'" sortable="'compared_to_effort.moving_time - effort.moving_time'">
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-3">{{c.effort.moving_time | seconds}}</div>

@@ -10,7 +10,7 @@
 </div>
 <table ng-table="tableParams" class="table">
     <tr ng-repeat="c in $data">
-        <td data-title="'Executed'">
+        <td data-title="'Executed'" sortable="'started_ts'">
             <span ng-show="c.started_ts != undefined"><a href="/comparisons/{{c.id}}">{{c.started_ts * 1000 | timeago}}</a></span>
             <span ng-show="c.started_ts == undefined"><a href="/comparisons/{{c.id}}">Waiting to start</a></span>
         </td>
@@ -18,9 +18,9 @@
             <span ng-show="c.state == 'Running'">Running</span>
             <span ng-show="c.completed_ts != undefined">{{c.completed_ts - c.started_ts | secondstotime}}</span>
         </td>
-        <td data-title="'Compared to'">
+        <td data-title="'Compared to'" sortable="'compare_to_athlete.lastname'">
             <a target="_blank" href="http://www.strava.com/athletes/{{c.compare_to_athlete_id}}">{{c.compare_to_athlete.firstname}} {{c.compare_to_athlete.lastname}}</a></td>
-        <td data-title="'How many segments in common?'">{{c.comparisons.length}}</td>
+        <td data-title="'How many segments in common?'" sortable="'comparisons.length'">{{c.comparisons.length}}</td>
         <td><span class="glyphicon glyphicon-trash" ng-click="deleteComparison($index)"></span></td>
     </tr>
 </table>
