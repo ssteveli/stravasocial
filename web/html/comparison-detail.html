@@ -69,7 +69,7 @@
                     <td><span ng-class="{'red' : (total_time_difference) < 0}">{{total_time_difference | secondstotime}}</span></td>
                 </tr>
                 <tr ng-show="weighted_average">
-                    <td>Weighted Average Difference</td>
+                    <td>Weighted Average Difference <i class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="Percentage you're faster or slower than {{comparison.compare_to_athlete.firstname}} with longer segments weighted higher in the score.   See the FAQ for more details." popover-placement="bottom" popover-append-to-body="true"></i></td>
                     <td><span ng-class="{'red' : (weighted_average) < 0}">{{weighted_average | number:2}}%</span></td>
                 </tr>
 
