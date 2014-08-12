@@ -72,58 +72,62 @@
         </div>
     </div>
 </div>
-<table ng-table="tableParams" class="table">
-    <thead>
-        <tr>
-            <th class="sortable" ng-class="{
-                    'sort-asc': tableParams.isSortBy('segment.name', 'asc'),
-                    'sort-desc': tableParams.isSortBy('segment.name', 'desc')
-                  }"
-                ng-click="tableParams.sorting({'segment.name' : tableParams.isSortBy('segment.name', 'asc') ? 'desc' : 'asc'})" rowspan="2">Segment</th>
-            <th colspan="9"><i class="glyphicon glyphicon-user"></i> You ({{comparison.compare_to_athlete.firstname}})</th>
-        </tr>
-        <tr>
-            <th class="sortable" ng-class="{
-                    'sort-asc': tableParams.isSortBy('effort.distance', 'asc'),
-                    'sort-desc': tableParams.isSortBy('effort.distance', 'desc')
-                  }"
-                ng-click="tableParams.sorting({'effort.distance' : tableParams.isSortBy('effort.distance', 'asc') ? 'desc' : 'asc'})" colspan="2">Distance</th>
-            <th class="sortable" ng-class="{
-                    'sort-asc': tableParams.isSortBy('effort.average_watts', 'asc'),
-                    'sort-desc': tableParams.isSortBy('effort.average_watts', 'desc')
-                  }"
-                ng-click="tableParams.sorting({'effort.average_watts' : tableParams.isSortBy('effort.average_watts', 'asc') ? 'desc' : 'asc'})" colspan="2"><i class="glyphicon glyphicon-flash"></i> Avg Watts</th>
-            <th class="sortable" ng-class="{
-                    'sort-asc': tableParams.isSortBy('effort.average_heartrate', 'asc'),
-                    'sort-desc': tableParams.isSortBy('effort.average_heartrate', 'desc')
-                  }"
-                ng-click="tableParams.sorting({'effort.average_heartrate' : tableParams.isSortBy('effort.average_heartrate', 'asc') ? 'desc' : 'asc'})" colspan="2"><i class="glyphicon glyphicon-heart-empty"></i> Avg Heartrate</th>
-            <th class="sortable" ng-class="{
-                    'sort-asc': tableParams.isSortBy('effort.moving_time', 'asc'),
-                    'sort-desc': tableParams.isSortBy('effort.moving_time', 'desc')
-                  }"
-                ng-click="tableParams.sorting({'effort.moving_time' : tableParams.isSortBy('effort.moving_time', 'asc') ? 'desc' : 'asc'})" colspan="2">Total Time</th>
-            <th class="sortable" ng-class="{
-                    'sort-asc': tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'asc'),
-                    'sort-desc': tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'desc')
-                  }"
-                ng-click="tableParams.sorting({'compared_to_effort.moving_time - effort.moving_time' : tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'asc') ? 'desc' : 'asc'})">Difference</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr ng-repeat="c in $data">
-            <td><a target="_blank" href="http://www.strava.com/segments/{{c.segment.id}}">{{c.segment.name}}</a></td>
-            <td>{{c.effort.distance | feet}}</td>
-            <td>({{c.compared_to_effort.distance | feet}})</td>
-            <td>{{c.effort.average_watts}}</td>
-            <td>({{c.compared_to_effort.average_watts}})</td>
-            <td>{{c.effort.average_heartrate}}</td>
-            <td>({{c.compared_to_effort.average_heartrate}})</td>
-            <td>{{c.effort.moving_time | seconds}}</td>
-            <td>({{c.compared_to_effort.moving_time | seconds}})</td>
-            <td><span style="white-space: nowrap;" ng-class="{'red' : (c.compared_to_effort.moving_time - c.effort.moving_time) < 0}">{{c.compared_to_effort.moving_time - c.effort.moving_time | secondstotime}}</span></td>
-        </tr>
-    </tbody>
-</table>
+<div loading-container="tableParams.settings().$loading">
+    {{$loading}}
+    <table ng-table="tableParams" class="table">
+        <thead>
+            <tr>
+                <th class="sortable" ng-class="{
+                        'sort-asc': tableParams.isSortBy('segment.name', 'asc'),
+                        'sort-desc': tableParams.isSortBy('segment.name', 'desc')
+                      }"
+                    ng-click="tableParams.sorting({'segment.name' : tableParams.isSortBy('segment.name', 'asc') ? 'desc' : 'asc'})" rowspan="2">Segment</th>
+                <th colspan="9"><i class="glyphicon glyphicon-user"></i> You ({{comparison.compare_to_athlete.firstname}})</th>
+            </tr>
+            <tr>
+                <th class="sortable" ng-class="{
+                        'sort-asc': tableParams.isSortBy('effort.distance', 'asc'),
+                        'sort-desc': tableParams.isSortBy('effort.distance', 'desc')
+                      }"
+                    ng-click="tableParams.sorting({'effort.distance' : tableParams.isSortBy('effort.distance', 'asc') ? 'desc' : 'asc'})" colspan="2">Distance</th>
+                <th class="sortable" ng-class="{
+                        'sort-asc': tableParams.isSortBy('effort.average_watts', 'asc'),
+                        'sort-desc': tableParams.isSortBy('effort.average_watts', 'desc')
+                      }"
+                    ng-click="tableParams.sorting({'effort.average_watts' : tableParams.isSortBy('effort.average_watts', 'asc') ? 'desc' : 'asc'})" colspan="2"><i class="glyphicon glyphicon-flash"></i> Avg Watts</th>
+                <th class="sortable" ng-class="{
+                        'sort-asc': tableParams.isSortBy('effort.average_heartrate', 'asc'),
+                        'sort-desc': tableParams.isSortBy('effort.average_heartrate', 'desc')
+                      }"
+                    ng-click="tableParams.sorting({'effort.average_heartrate' : tableParams.isSortBy('effort.average_heartrate', 'asc') ? 'desc' : 'asc'})" colspan="2"><i class="glyphicon glyphicon-heart-empty"></i> Avg Heartrate</th>
+                <th class="sortable" ng-class="{
+                        'sort-asc': tableParams.isSortBy('effort.moving_time', 'asc'),
+                        'sort-desc': tableParams.isSortBy('effort.moving_time', 'desc')
+                      }"
+                    ng-click="tableParams.sorting({'effort.moving_time' : tableParams.isSortBy('effort.moving_time', 'asc') ? 'desc' : 'asc'})" colspan="2"><i class="glyphicon glyphicon-time"></i> Total Time</th>
+                <th class="sortable" ng-class="{
+                        'sort-asc': tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'asc'),
+                        'sort-desc': tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'desc')
+                      }"
+                    ng-click="tableParams.sorting({'compared_to_effort.moving_time - effort.moving_time' : tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'asc') ? 'desc' : 'asc'})">Time Difference</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="c in $data">
+                <td><a target="_blank" href="http://www.strava.com/segments/{{c.segment.id}}">{{c.segment.name}}</a></td>
+                <td>{{c.effort.distance | feet}}</td>
+                <td>({{c.compared_to_effort.distance | feet}})</td>
+                <td>{{c.effort.average_watts}}</td>
+                <td>({{c.compared_to_effort.average_watts}})</td>
+                <td>{{c.effort.average_heartrate}}</td>
+                <td ng-if="c.compared_to_effort.average_heartrate > 0">({{c.compared_to_effort.average_heartrate}})</td>
+                <td ng-if="c.compared_to_effort.average_heartrate == undefined">-</td>
 
+                <td>{{c.effort.moving_time | seconds}}</td>
+                <td>({{c.compared_to_effort.moving_time | seconds}})</td>
+                <td style="text-align: right;"><span style="white-space: nowrap;" ng-class="{'red' : (c.compared_to_effort.moving_time - c.effort.moving_time) < 0}">{{c.compared_to_effort.moving_time - c.effort.moving_time | secondstotime}}</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 <p><a href="/comparisons">Return to Comparisons</a></p>
