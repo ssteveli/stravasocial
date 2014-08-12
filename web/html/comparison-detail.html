@@ -68,6 +68,11 @@
                     <td>Total Time Difference</td>
                     <td><span ng-class="{'red' : (total_time_difference) < 0}">{{total_time_difference | secondstotime}}</span></td>
                 </tr>
+                <tr ng-show="weighted_average">
+                    <td>Weighted Average Difference</td>
+                    <td><span ng-class="{'red' : (weighted_average) < 0}">{{weighted_average | number:2}}%</span></td>
+                </tr>
+
             </table>
         </div>
     </div>

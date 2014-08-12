@@ -211,6 +211,7 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                     var win = 0;
                     var loss = 0;
                     var tied = 0;
+
                     for (var i=0; i<data.comparisons.length; i++) {
                         var c = data.comparisons[i];
                         var diff = (c.compared_to_effort.moving_time - c.effort.moving_time);
@@ -223,6 +224,8 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                             tied++;
                         }
                     }
+
+                    $scope.weighted_average = get_weighted_average(data.comparisons);
                     $scope.total_time_difference = sum;
                     $scope.wins = win;
                     $scope.losses = loss;
@@ -296,4 +299,17 @@ function manageSession($scope, $http, ipCookie) {
 
 function handleMissingImage(image) {
     image.src = '/assets/no_image_small.png';
+}
+
+function weight(meters) {
+    if (meters <= 804.672) // 1/2 mile
+        return 1;
+    else if (meters <= 1609.34) // 1 mile
+        return 2;
+    else if (meters <= 2414.02) // 1.5 miles
+        return 3;
+    else if (meters <= 3218.69) // 2 miles
+        return 4;
+    else
+        return 5;
 }
