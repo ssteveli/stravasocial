@@ -115,8 +115,8 @@
         <tbody>
             <tr ng-repeat="c in $data">
                 <td><a target="_blank" href="http://www.strava.com/segments/{{c.segment.id}}">{{c.segment.name}}</a></td>
-                <td>{{c.effort.distance | feet}}</td>
-                <td>({{c.compared_to_effort.distance | feet}})</td>
+                <td>{{c.effort.distance | feet:measurement_preference}}</td>
+                <td>({{c.compared_to_effort.distance | feet:measurement_preference}})</td>
                 <td>{{c.effort.average_watts}}</td>
                 <td>({{c.compared_to_effort.average_watts}})</td>
                 <td>{{c.effort.average_heartrate}}</td>

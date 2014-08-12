@@ -107,9 +107,15 @@ angular.module('myFilters', []).filter('timeago', function() {
         return $.timeago(new Date(input));
     }
 }).filter('feet', function() {
-    return function(input) {
+    return function(input, pref) {
         var i = parseFloat(input);
-        return (i * 0.000621371).toFixed(2) + 'mi';
+
+        if (pref == 'feet') {
+            return (i * 0.000621371).toFixed(2) + 'mi';
+        } else {
+            return (i * 0.001).toFixed(2) + 'km';
+        }
+
     }
 }).filter('seconds', function() {
    return function(input) {
@@ -142,15 +148,15 @@ function format_seconds(input) {
     var s = '';
 
     if (hours > 0) {
-        s += hours + ' hours ';
+        s += hours + ' hr ';
     }
 
     if (minutes > 0) {
-        s += minutes + ' mins ';
+        s += minutes + ' min ';
     }
 
     if (seconds > 0) {
-        s += seconds + ' seconds';
+        s += seconds + ' sec' + ((seconds > 1) ? 's' : '');
     }
 
     return s;

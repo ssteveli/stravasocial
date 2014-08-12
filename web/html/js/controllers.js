@@ -1,6 +1,8 @@
 
 var appControllers = angular.module('appControllers', ['ipCookie']);
 
+var mp = undefined;
+
 appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 'ipCookie',
 	function($scope, $routeParams, $http, ipCookie) {
         $scope.athlete = null;
@@ -179,9 +181,6 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                 $scope.social_sharing = true;
               else
                 $scope.social_sharing = false;
-          }).
-          error(function (error) {
-
           });
 
         var retrieveComparisons = function () {
@@ -240,8 +239,17 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                 });
         }
 
-        // initial retrieval
-        retrieveComparisons();
+        if (mp == undefined) {
+            $http.get('/api/strava/athlete').
+                success(function (data) {
+                    mp = data.measurement_preference;
+                    $scope.measurement_preference = mp;
+                    retrieveComparisons();
+                });
+        } else {
+            $scope.measurement_preference = mp;
+            retrieveComparisons();
+        }
 
         $scope.xFunction = function(){
             return function(d) {
