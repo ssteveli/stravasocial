@@ -57,8 +57,8 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
     function ($scope, $http, $routeParams, $timeout, $resource, $filter, ngTableParams) {
         $scope.comparisons = [];
 
-        var data = $resource('/api/strava/comparisons').query();
-        data.$promise.then(function (data) {
+        $scope.data = $resource('/api/strava/comparisons').query();
+        $scope.data.$promise.then(function (data) {
             $scope.tableParams = new ngTableParams({
                 page: 1,
                 count: 10,
@@ -67,22 +67,28 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
                 }
             }, {
                 total: 0,
-                getData: function($defer, params) {
+                getData: function ($defer, params) {
                     var orderedData = params.sorting() ?
                         $filter('orderBy')(data, params.orderBy()) : data;
                     params.total(data.length);
                     $defer.resolve(orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count()));
                 }
             });
-        })
+        });
 
-
-        $scope.deleteComparison = function(idx) {
-            var record_to_delete = $scope.comparisons[idx];
-
-            $http.delete('/api/strava/comparisons/' + record_to_delete.id).
+        $scope.deleteComparison = function(id) {
+            $http.delete('/api/strava/comparisons/' + id).
                 success(function(data) {
-                    $scope.comparisons.splice(idx, 1);
+                    for (var i=0; i<$scope.data.length; i++) {
+                        if ($scope.data[i].id == id) {
+                            $scope.data.splice(i, 1);
+                            $scope.tableParams.reload();
+                            break;
+                        }
+                    }
+                }).
+                error(function(error) {
+                    $scope.danger_message = 'Sorry, there was some kind of error deleting the comparisons';
                 });
         };
 
