@@ -10,6 +10,14 @@ appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 
         $http.get('/api/strava/athlete').
             success(function(data) {
                 $scope.athlete = data;
+
+                if (mp == undefined) {
+                    mp = data.measurement_preference;
+                    $scope.measurement_preference = mp;
+                } else {
+                    $scope.measurement_preference = mp;
+                }
+
             }).error(function(error) {
                 console.log('athlete resource error: ' + error);
                 $scope.athlete = null;
