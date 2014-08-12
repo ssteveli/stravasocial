@@ -41,7 +41,7 @@
                     <form role="form" name="newcomparisonform">
                         <div class="form-group">
                             <label for="compare_to_athlete_id">Enter Athlete Id to Compare Against</label>
-                            <input class="form=control" type="number" id="compare_to_athlete_id" name="compare_to_athlete_id" ng-model="compare_to_athlete_id" ng-change="athleteIdChanged()" required placeholder="Athlete Id"/>
+                            <input class="form=control" type="number" id="compare_to_athlete_id" name="compare_to_athlete_id" ng-model="compare_to_athlete_id" ng-change="athleteIdChanged()" required placeholder="Athlete Id"/> <a href="#" popover-trigger="mouseenter" popover="The athlete id can be found on the URL of their Strava profile page, see the FAQ for more information." popover-placement="right" popover-append-to-body="true">What is this?</a>
                             <span class="help-block">
                                 <span class="error" ng-show="newcomparisonform.compare_to_athlete_id.$error.number">Not a valid athlete id, must be numeric</span>
                                 <span ng-show="athlete_validation">{{athlete_validation}}</span>
@@ -63,5 +63,4 @@
             </div>
         </div>
     </div>
-</div>
 </div>

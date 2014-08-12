@@ -5,7 +5,8 @@ var app = angular.module('app', [
 	'ipCookie',
 	'appControllers',
     'myFilters',
-    'nvd3ChartDirectives'
+    'nvd3ChartDirectives',
+    'ui.bootstrap'
 ]);
 
 app.config(['$routeProvider', '$locationProvider',
@@ -37,19 +38,19 @@ app.config(['$routeProvider', '$locationProvider',
 ]);
 
 app.directive('loadingContainer', function () {
-        return {
-            restrict: 'A',
-            scope: false,
-            link: function(scope, element, attrs) {
-                var loadingLayer = angular.element('<div class="loading"></div>');
-                element.append(loadingLayer);
-                element.addClass('loading-container');
-                scope.$watch(attrs.loadingContainer, function(value) {
-                    loadingLayer.toggleClass('ng-hide', !value);
-                });
-            }
-        };
-    });
+    return {
+        restrict: 'A',
+        scope: false,
+        link: function(scope, element, attrs) {
+            var loadingLayer = angular.element('<div class="loading"></div>');
+            element.append(loadingLayer);
+            element.addClass('loading-container');
+            scope.$watch(attrs.loadingContainer, function(value) {
+                loadingLayer.toggleClass('ng-hide', !value);
+            });
+        }
+    };
+});
 
 // borrowed from http://stackoverflow.com/questions/15399958/closing-twitter-bootstrap-modal-from-angular-controller
 app.directive("modalShow", function () {
