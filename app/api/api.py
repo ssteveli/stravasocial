@@ -101,7 +101,9 @@ def getComparisonsBySession():
     athlete = validateSessionAndGetAthlete()
 
     result = []
-    for r in con.comparisons.find({'athlete_id': athlete['id']}):
+    dbresults = con.comparisons.find({}) if is_admin(athlete) else con.comparisons.find({'athlete_id': athlete['id']})
+
+    for r in dbresults:
         r['compare_to_athlete'] = strava.getAthlete(athlete, r['compare_to_athlete_id'])
         r['id'] = str(r['_id'])
         r.pop('_id')
@@ -116,7 +118,7 @@ def deleteComparison(comparison_id):
         _id = ObjectId(str(comparison_id))
         comparison = con.comparisons.find_one({'_id': ObjectId(str(comparison_id))})
 
-        if comparison is None or athlete['id'] != comparison['athlete_id']:
+        if comparison is None or (athlete['id'] != comparison['athlete_id'] and not is_admin(athlete)):
             abort(404, 'the specified comparison id was not found')
 
         con.comparisons.remove({'_id': ObjectId(str(comparison_id))})
@@ -132,7 +134,7 @@ def getComparisonBySession(comparisonid):
         _id = ObjectId(str(comparisonid))
         comparison = con.comparisons.find_one({'_id': ObjectId(str(comparisonid))})
 
-        if comparison is None or athlete['id'] != comparison['athlete_id']:
+        if comparison is None or (athlete['id'] != comparison['athlete_id'] and not is_admin(athlete)):
             abort(404, 'the specified comparison id was not found')
 
         comparison['compare_to_athlete'] = strava.getAthlete(athlete['id'], comparison['compare_to_athlete_id'])
@@ -251,6 +253,18 @@ def is_comparison_allowed(athlete):
         return False
     else:
         return p['is_execution_allowed']
+
+def is_admin(athlete):
+    dbathlete = strava.getAthleteFromStore(athlete['id'])
+
+    if dbathlete is None:
+        return False
+    elif 'roles' not in dbathlete:
+        print 'roles is not in athlete' + dumps(dbathlete)
+        return False
+    else:
+        print 'roles: ' + dumps(dbathlete['roles'])
+        return 'admin' in dbathlete['roles']
 
 if __name__ == '__main__':
     app.run(host = '0.0.0.0', debug = True)
