@@ -104,10 +104,13 @@ def getComparisonsBySession():
     dbresults = con.comparisons.find({}) if is_admin(athlete) else con.comparisons.find({'athlete_id': athlete['id']})
 
     for r in dbresults:
-        r['compare_to_athlete'] = strava.getAthlete(athlete, r['compare_to_athlete_id'])
-        r['id'] = str(r['_id'])
-        r.pop('_id')
-        result.append(r)
+        if 'compare_to_athlete_id' in r:
+            r['compare_to_athlete'] = strava.getAthlete(athlete, r['compare_to_athlete_id'])
+            r['id'] = str(r['_id'])
+            r.pop('_id')
+            result.append(r)
+        else:
+            print 'comparison {id} is invalid, missing compare_to_athlete_id field'.format(id=r['_id'])
 
     return Response(dumps(result), mimetype='application/json')
 
