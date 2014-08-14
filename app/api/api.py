@@ -27,6 +27,8 @@ class Container():
         self.db = self.client.stravasocial
         self.comparisons = self.db.comparisons
         self.authorizations = self.db.authorizations
+        self.roles = self.db.roles
+
         self.gearman_connections = [
             'strava-gearmand:4730'
         ]
@@ -106,10 +108,15 @@ def getComparisonsBySession():
 
     result = []
 
-    for r in con.comparisons.find({'athlete_id': athlete['athlete_id']}):
+    for r in con.comparisons.find({'athlete_id': athlete['athlete_id']}) if not is_role('admin') else con.comparisons.find({}):
         r['compare_to_athlete'] = get_athlete_dict(r['compare_to_athlete_id'])
+        r['athlete'] = get_athlete_dict(r['athlete_id'])
         r['id'] = str(r['_id'])
         r.pop('_id')
+
+        if is_role('admin'):
+            r['viewtype'] = 'admin'
+
         result.append(r)
 
     return Response(dumps(result), mimetype='application/json')
@@ -121,7 +128,7 @@ def deleteComparison(comparison_id):
         _id = ObjectId(str(comparison_id))
         comparison = con.comparisons.find_one({'_id': ObjectId(str(comparison_id))})
 
-        if comparison is None or athlete['athlete_id'] != comparison['athlete_id']:
+        if comparison is None or (athlete['athlete_id'] != comparison['athlete_id'] and not is_role('admin')):
             abort(404, 'the specified comparison id was not found')
 
         con.comparisons.remove({'_id': ObjectId(str(comparison_id))})
@@ -137,7 +144,7 @@ def getComparisonBySession(comparisonid):
     _id = ObjectId(str(comparisonid))
     comparison = con.comparisons.find_one({'_id': ObjectId(str(comparisonid))})
 
-    if comparison is None or athlete['athlete_id'] != comparison['athlete_id']:
+    if comparison is None or (athlete['athlete_id'] != comparison['athlete_id'] and not is_role('admin')):
         abort(404, 'the specified comparison id was not found')
 
     comparison['compare_to_athlete'] = get_athlete_dict(comparison['compare_to_athlete_id'])
@@ -334,6 +341,23 @@ def is_comparison_allowed(athlete):
         return False
     else:
         return p['is_execution_allowed']
+
+def is_role(role):
+    if role is None:
+        return False
+
+    session_id = request.cookies.get('stravaSocialSessionId')
+
+    if session_id is None:
+        return False
+
+    authorization = con.authorizations.find_one({'id': session_id})
+
+    if authorization is None or 'athlete_id' not in authorization:
+        return False
+
+    i = con.roles.find({'role': role, 'athletes': authorization['athlete_id']}).count()
+    return i > 0
 
 def get_stravadao():
     token = None
