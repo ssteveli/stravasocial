@@ -105,6 +105,7 @@ def getComparisonsBySession():
     athlete = validateSessionAndGetAthlete()
 
     result = []
+
     for r in con.comparisons.find({'athlete_id': athlete['athlete_id']}):
         r['compare_to_athlete'] = get_athlete_dict(r['compare_to_athlete_id'])
         r['id'] = str(r['_id'])
