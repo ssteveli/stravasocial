@@ -109,15 +109,18 @@ def getComparisonsBySession():
     result = []
 
     for r in con.comparisons.find({'athlete_id': athlete['athlete_id']}) if not is_role('admin') else con.comparisons.find({}):
-        r['compare_to_athlete'] = get_athlete_dict(r['compare_to_athlete_id'])
-        r['athlete'] = get_athlete_dict(r['athlete_id'])
-        r['id'] = str(r['_id'])
-        r.pop('_id')
+        if 'compare_to_athlete_id' in r:
+            r['compare_to_athlete'] = get_athlete_dict(r['compare_to_athlete_id'])
+            r['athlete'] = get_athlete_dict(r['athlete_id'])
+            r['id'] = str(r['_id'])
+            r.pop('_id')
 
-        if is_role('admin'):
-            r['viewtype'] = 'admin'
+            if is_role('admin'):
+                r['viewtype'] = 'admin'
 
-        result.append(r)
+            result.append(r)
+        else:
+            print('comparison {} appears to be invalid, it does not contain a compare_to_athlete_id field'.format(r['id']))
 
     return Response(dumps(result), mimetype='application/json')
 
