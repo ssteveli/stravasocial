@@ -82,11 +82,6 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
             });
         });
 
-        $scope.forceReload = function() {
-            $scope.data = $resource('/api/strava/comparisons').query();
-            $scope.tableParams.reload();
-        }
-
         $scope.deleteComparison = function(id) {
             $http.delete('/api/strava/comparisons/' + id).
                 success(function(data) {
