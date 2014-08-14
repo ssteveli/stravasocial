@@ -36,7 +36,7 @@ appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 
 		};
 		
 		$scope.disconnect = function disconnect() {
-			$http.delete('/api/strava/authorizations/' + $scope.sessionId).
+			$http.delete('/api/strava/authorizations/session').
 				success(function(data) {
 					$scope.athlete = null;
 					ipCookie.remove('stravaSocialSessionId');
@@ -63,8 +63,6 @@ appControllers.controller('StravaReturnController', ['$scope', '$location', '$ht
 
 appControllers.controller('ComparisonController', ['$scope', '$http', '$routeParams', '$timeout', '$resource', '$filter', 'ngTableParams',
     function ($scope, $http, $routeParams, $timeout, $resource, $filter, ngTableParams) {
-        $scope.comparisons = [];
-
         $scope.data = $resource('/api/strava/comparisons').query();
         $scope.data.$promise.then(function (data) {
             $scope.tableParams = new ngTableParams({
@@ -84,6 +82,11 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
             });
         });
 
+        $scope.forceReload = function() {
+            $scope.data = $resource('/api/strava/comparisons').query();
+            $scope.tableParams.reload();
+        }
+
         $scope.deleteComparison = function(id) {
             $http.delete('/api/strava/comparisons/' + id).
                 success(function(data) {
@@ -101,7 +104,8 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
         };
 
         $scope.$on('newlaunch', function(event, data) {
-            $scope.comparisons.unshift(data);
+            $scope.data.unshift(data);
+            $scope.tableParams.reload();
             $scope.info_message = 'Your comparison job has been successfully created and will process as soon as possible';
         });
 

@@ -25,6 +25,7 @@
             <td><span class="glyphicon glyphicon-trash" ng-click="deleteComparison(c.id)"></span></td>
         </tr>
     </table>
+    <button class="btn btn-custom btn-lg" ng-click="forceReload()">Force Reload</button>
 </div>
 <div ng-controller="NewComparisonController" ng-init="scope = { isLaunchDisabled: true }">
     <button class="btn btn-custom btn-lg" ng-click="openLaunch()">

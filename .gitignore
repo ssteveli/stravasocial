@@ -23,3 +23,5 @@ localconfig.py
 build
 dist
 *.egg-info
+test.py
+

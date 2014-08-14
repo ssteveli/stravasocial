@@ -73,7 +73,9 @@ def athlete_get_state(self):
     athlete = {
         'id': self.id,
         'firstname': self.firstname,
-        'lastname': self.lastname
+        'lastname': self.lastname,
+        'profile': self.profile,
+        'measurement_preference': self.measurement_preference
     }
     return athlete
 

@@ -14,9 +14,27 @@ cache_opts = {
 cache = CacheManager(**parse_cache_config_options(cache_opts))
 
 class Strava():
-    def __init__(self, access_token):
+    def __init__(self, access_token=None):
         self.client = Client()
-        self.client.access_token = access_token
+
+        if access_token is not None:
+            self.client.access_token = access_token
+
+    @timing('strava_invalidate_cached_athlete')
+    def invalidate_cached_athlete(self, id):
+        cache.invalidate(self.get_athlete, 'strava_get_athlete', id)
+
+    @timing('strava_set_access_token_and_get_athlete')
+    def set_access_token_and_get_athlete(self, token):
+        self.client.access_token = token
+        return self.client.get_athlete()
+
+    @timing('strava_exchange_code_for_token')
+    def exchange_code_for_token(self, code):
+        return self.client.exchange_code_for_token(
+            client_id=pyconfig.get('strava.client_id'),
+            client_secret=pyconfig.get('strava.client_secret'),
+            code=code)
 
     @timing('strava_get_activities')
     def get_activities(self, **kwargs):

@@ -1,13 +1,13 @@
-
-from idgenerator import IdGenerator
 from pymongo import MongoClient
 import json
 import urllib
 import urllib2
 import datetime
+
 import gearman
 import pyconfig
 
+from util.idgenerator import IdGenerator
 
 
 class Strava:

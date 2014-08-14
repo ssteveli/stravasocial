@@ -45,7 +45,7 @@ class Plan():
             is_execution_allowed= True
         else:
             # get the last comparison this athlete ran
-            cur = self.comparisons.find({"athlete_id": self.athlete['id']}).sort("started_ts", DESCENDING).limit(1)
+            cur = self.comparisons.find({"athlete_id": self.athlete['athlete_id']}).sort("started_ts", DESCENDING).limit(1)
 
             if cur is None or cur.count() == 0:
                 is_execution_allowed = True
