@@ -20,4 +20,6 @@ config.properties
 *.pyc
 ._*
 localconfig.py
-
+build
+dist
+*.egg-info

@@ -1,7 +1,6 @@
 #!/usr/local/bin/python
 
 from flask import Flask, jsonify, abort, make_response, Response, request
-from strava import Strava
 from pymongo import MongoClient
 from bson.json_util import dumps, ObjectId
 from gearman import GearmanClient, admin_client
@@ -10,9 +9,11 @@ from features import FeatureFlags
 import time
 import json
 import pyconfig
+from stravadao.strava import Strava
+import strava
 
 app = Flask(__name__)
-strava = Strava()
+strava = strava.Strava()
 
 class Container():
     def __init__(self):
@@ -147,18 +148,24 @@ def getComparisonBySession(comparisonid):
 @app.route('/api/strava/athlete')
 def getAthleteBySession():
     athlete = validateSessionAndGetAthlete()
-    return Response(json.dumps(athlete), mimetype='application/json')
+    return getAthlete(athlete['id'])
 
 @app.route('/api/strava/athletes/<id>')
 def getAthlete(id):
-    current_athlete = validateSessionAndGetAthlete()
-
-    requested_athlete = strava.getAthlete(current_athlete, id)
+    requested_athlete = get_stravadao().get_athlete(id)
 
     if requested_athlete is None:
-        abort(404)
+        abort(404, 'the specified athlete {} was not found'.format(id))
     else:
-        return Response(json.dumps(requested_athlete), mimetype='application/json')
+        athlete = {
+            'id': requested_athlete.id,
+            'firstname': requested_athlete.firstname,
+            'lastname': requested_athlete.lastname,
+            'measurement_preference': requested_athlete.measurement_preference,
+            'profile': requested_athlete.profile
+        }
+
+        return Response(json.dumps(athlete), mimetype='application/json')
 
 @app.route('/api/strava/athlete/plan')
 def getAthletePlan():
@@ -251,6 +258,22 @@ def is_comparison_allowed(athlete):
         return False
     else:
         return p['is_execution_allowed']
+
+def get_stravadao():
+    token = ''
+
+    auth_header = request.headers.get('Authorization')
+    if auth_header is not None:
+        print 'using token from header'
+        token = auth_header.rsplit(' ', 1)[1]
+    else:
+        print 'expecting token in session'
+        session_id = request.cookies.get('stravaSocialSessionId')
+        authorization = strava.getAuthorization(session_id)
+        token = authorization['access_token']
+
+    print 'using access token: {}'.format(token)
+    return Strava(token)
 
 if __name__ == '__main__':
     app.run(host = '0.0.0.0', debug = True)

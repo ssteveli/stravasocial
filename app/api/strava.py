@@ -9,6 +9,7 @@ import gearman
 import pyconfig
 
 
+
 class Strava:
 
     def __init__(self):
