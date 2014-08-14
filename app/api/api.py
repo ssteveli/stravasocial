@@ -120,7 +120,7 @@ def getComparisonsBySession():
 
             result.append(r)
         else:
-            print('comparison {} appears to be invalid, it does not contain a compare_to_athlete_id field'.format(r['id']))
+            print('comparison appears to be invalid, it does not contain a compare_to_athlete_id field: {}'.format(dumps(r)))
 
     return Response(dumps(result), mimetype='application/json')
 
