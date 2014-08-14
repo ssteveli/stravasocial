@@ -10,6 +10,14 @@ appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 
         $http.get('/api/strava/athlete').
             success(function(data) {
                 $scope.athlete = data;
+
+                if (mp == undefined) {
+                    mp = data.measurement_preference;
+                    $scope.measurement_preference = mp;
+                } else {
+                    $scope.measurement_preference = mp;
+                }
+
             }).error(function(error) {
                 console.log('athlete resource error: ' + error);
                 $scope.athlete = null;
@@ -28,7 +36,7 @@ appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 
 		};
 		
 		$scope.disconnect = function disconnect() {
-			$http.delete('/api/strava/authorizations/' + $scope.sessionId).
+			$http.delete('/api/strava/authorizations/session').
 				success(function(data) {
 					$scope.athlete = null;
 					ipCookie.remove('stravaSocialSessionId');
@@ -55,8 +63,6 @@ appControllers.controller('StravaReturnController', ['$scope', '$location', '$ht
 
 appControllers.controller('ComparisonController', ['$scope', '$http', '$routeParams', '$timeout', '$resource', '$filter', 'ngTableParams',
     function ($scope, $http, $routeParams, $timeout, $resource, $filter, ngTableParams) {
-        $scope.comparisons = [];
-
         $scope.data = $resource('/api/strava/comparisons').query();
         $scope.data.$promise.then(function (data) {
             $scope.tableParams = new ngTableParams({
@@ -93,7 +99,8 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
         };
 
         $scope.$on('newlaunch', function(event, data) {
-            $scope.comparisons.unshift(data);
+            $scope.data.unshift(data);
+            $scope.tableParams.reload();
             $scope.info_message = 'Your comparison job has been successfully created and will process as soon as possible';
         });
 
@@ -211,6 +218,7 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                     var win = 0;
                     var loss = 0;
                     var tied = 0;
+
                     for (var i=0; i<data.comparisons.length; i++) {
                         var c = data.comparisons[i];
                         var diff = (c.compared_to_effort.moving_time - c.effort.moving_time);
@@ -223,6 +231,8 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                             tied++;
                         }
                     }
+
+                    $scope.weighted_average = get_weighted_average(data.comparisons);
                     $scope.total_time_difference = sum;
                     $scope.wins = win;
                     $scope.losses = loss;
@@ -296,4 +306,17 @@ function manageSession($scope, $http, ipCookie) {
 
 function handleMissingImage(image) {
     image.src = '/assets/no_image_small.png';
+}
+
+function weight(meters) {
+    if (meters <= 804.672) // 1/2 mile
+        return 1;
+    else if (meters <= 1609.34) // 1 mile
+        return 2;
+    else if (meters <= 2414.02) // 1.5 miles
+        return 3;
+    else if (meters <= 3218.69) // 2 miles
+        return 4;
+    else
+        return 5;
 }

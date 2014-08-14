@@ -111,9 +111,9 @@ angular.module('myFilters', []).filter('timeago', function() {
         var i = parseFloat(input);
 
         if (pref == 'feet') {
-            return (i * 0.000621371).toFixed(2) + 'mi';
+            return (i * 0.000621371).toFixed(2) + ' mi';
         } else {
-            return (i * 0.001).toFixed(2) + 'km';
+            return (i * 0.001).toFixed(2) + ' km';
         }
 
     }

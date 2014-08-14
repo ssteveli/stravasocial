@@ -1,12 +1,10 @@
 __author__ = 'ssteveli'
 
-from stravalib import Client
 from datetime import date, timedelta
 import time
-import logging
-from timing import timing
+from util.timing import timing
 
-logging.basicConfig(level=50)
+from stravadao.strava import Strava
 
 class StravaCompare:
 
@@ -16,12 +14,9 @@ class StravaCompare:
         self.access_token = access_token
         self.id = id
         self.callback = callback
+        self.sd = Strava(access_token)
 
-        print 'building stravalib client with access_token {access_token}'.format(access_token=access_token)
-        self.client = Client()
-        self.client.access_token = self.access_token
-
-    @timing
+    @timing('compare')
     def compare(self, days=1):
         print 'comparing {athlete_id} to {compare_to_athlete_id}'.format(athlete_id=self.athlete_id, compare_to_athlete_id=self.compare_to_athlete_id)
 
@@ -42,7 +37,8 @@ class StravaCompare:
             print 'processing activity {i} of {total}'.format(i=count, total=len(activities))
             self.fireCallback('activity', current_activity_idx=count, total_activities=len(activities))
 
-            dactivity = self.getDetailedActivity(activity.id)
+            dactivity = self.sd.get_activity(activity.id)
+            print 'i called getDetailedActivity asking for {} and got {} which has {} efforts'.format(activity.id, dactivity.id, list(dactivity.segment_efforts).__len__())
 
             ecount = 0
             for effort in list(dactivity.segment_efforts):
@@ -50,18 +46,19 @@ class StravaCompare:
                 print 'processing effort {i} of {total}'.format(i=ecount, total=len(list(dactivity.segment_efforts)))
 
                 if self.segmentNotProcessedAlready(effort.segment.id, result['comparisons']):
-                    cefforts = list(self.getEfforts(effort.segment.id, self.compare_to_athlete_id))
+                    cefforts = list(self.sd.get_efforts(effort.segment.id, self.compare_to_athlete_id))
 
                     if len(cefforts) > 0:
                         ceffort = cefforts.pop(0)
 
-                        topefforts = list(self.getEfforts(effort.segment.id, self.athlete_id))
+                        topefforts = list(self.sd.get_efforts(effort.segment.id, self.athlete_id))
                         topeffort = topefforts.pop(0)
 
                         e = {
                             'segment': {
                                 'id': topeffort.segment.id,
-                                'name': topeffort.name
+                                'name': topeffort.name,
+                                'average_grade': topeffort.segment.average_grade
                             },
                             'effort': {
                                 'id': topeffort.id,
@@ -110,24 +107,13 @@ class StravaCompare:
         return result
 
 
-    @timing
     def getActivities(self, days=31):
-        print 'getting activities for the past {days}'.format(days=days)
-        activities = list(self.client.get_activities(after=date.today()-timedelta(days=days)))
-        print 'found {count} activities in the past {days}'.format(count=len(activities), days=days)
+        print 'getting activities for the past {days} days'.format(days=days)
+        activities = list(self.sd.get_activities(after=date.today()-timedelta(days=days)))
+        print 'found {count} activities in the past {days} days'.format(count=len(activities), days=days)
 
         return activities
 
-    @timing
-    def getDetailedActivity(self, activityId):
-        print 'getting detailed activity for activityId: {activityId}'.format(activityId = activityId)
-        return self.client.get_activity(activityId)
-
-    @timing
-    def getEfforts(self, segmentId, athleteId):
-        return self.client.get_segment_efforts(segmentId,athleteId,limit=1)
-
-    @timing
     def segmentNotProcessedAlready(self, segmentId, comparisons):
         for i in list(comparisons):
             if segmentId == i['segment']['id']:
@@ -143,6 +129,5 @@ class StravaCompare:
             self.callback(type, **kwargs)
 
 if __name__ == '__main__':
-    #StravaCompare(2298968, 2485249, '7f8e5ab7ec53926c6165c96d64a22a589d8c48b6').compare() #wendy
-    StravaCompare(2298968, 387103, '7f8e5ab7ec53926c6165c96d64a22a589d8c48b6').compare() #ben
-
+    print 'comparison result: {}'.format(StravaCompare(2298968, 2485249, '7f8e5ab7ec53926c6165c96d64a22a589d8c48b6').compare(days=3)) #wendy
+    #print 'comparison result: {}'.format(StravaCompare(2298968, 387103, '7f8e5ab7ec53926c6165c96d64a22a589d8c48b6').compare(days=3)) #ben
