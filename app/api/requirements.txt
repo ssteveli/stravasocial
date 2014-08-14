@@ -3,3 +3,5 @@ pymongo
 gearman
 flask
 pyconfig
+beaker
+
