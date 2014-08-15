@@ -39,9 +39,9 @@
 <p>
     I'm limited to the functionality of the Strava API.  As they expose more data, I'll add more comparisons.
 </p>
-<p class="lead">What does the <i>Weighted Average Difference</i> really mean?</i></p>
+<p class="lead">What does the <i>Weighted Average Difference (WAD)</i> really mean?</i></p>
 <p>
-    Segments are assigned points (weight) depending on distance:
+    The distance WAD is weighted according to the following:
     <ul>
         <li>Less than or equal to {{804.672 | feet:measurement_preference}} = 1 point</li>
         <li>Less than or equal to {{1609.34 | feet:measurement_preference}} = 2 points</li>
@@ -49,7 +49,10 @@
         <li>Less than or equal to {{3218.69 | feet:measurement_preference}} = 4 points</li>
         <li>Greater than {{3218.69 | feet:measurement_preference}} = 5 points</li>
     </ul>
-    The time difference in percentages is tallyed out and weighted against the above points.  This is the weighted average.
+    <p>The climbing WAD is weighted based on the segments average grade * 2</p>
+    <p>
+        The time difference in percentages is tallyed out and weighted against the above points.  This is the weighted average.
+    </p>
 </p>
 <p class="lead">Well that's pretty stupid for a weighted average, I have a better idea.</i></p>
 <p>

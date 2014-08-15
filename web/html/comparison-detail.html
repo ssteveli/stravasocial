@@ -68,9 +68,13 @@
                     <td>Total Time Difference</td>
                     <td><span ng-class="{'red' : (total_time_difference) < 0}">{{total_time_difference | secondstotime}}</span></td>
                 </tr>
-                <tr ng-show="weighted_average">
-                    <td>Weighted Average Difference <i class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="Percentage you're faster or slower than {{comparison.compare_to_athlete.firstname}} with longer segments weighted higher in the score.   See the FAQ for more details." popover-placement="bottom" popover-append-to-body="true"></i></td>
-                    <td><span ng-class="{'red' : (weighted_average) < 0}">{{weighted_average | number:2}}%</span></td>
+                <tr ng-show="weighted_average_distance">
+                    <td>Distance WAD <i class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="Percentage you're faster or slower than {{comparison.compare_to_athlete.firstname}} with longer segments weighted higher in the score.   See the FAQ for more details." popover-placement="bottom" popover-append-to-body="true"></i></td>
+                    <td><span ng-class="{'red' : (weighted_average_distance) < 0}">{{weighted_average_distance | number:2}}%</span></td>
+                </tr>
+                <tr ng-show="weighted_average_climb">
+                    <td>Climbing WAD <i class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="Percentage you're faster or slower than {{comparison.compare_to_athlete.firstname}} with steeper segments weighted higher in the score.   See the FAQ for more details." popover-placement="bottom" popover-append-to-body="true"></i></td>
+                    <td><span ng-class="{'red' : (weighted_average_climb) < 0}">{{weighted_average_climb | number:2}}%</span></td>
                 </tr>
 
             </table>
@@ -96,6 +100,11 @@
                       }"
                     ng-click="tableParams.sorting({'effort.distance' : tableParams.isSortBy('effort.distance', 'asc') ? 'desc' : 'asc'})" colspan="2">Distance</th>
                 <th class="sortable" ng-class="{
+                        'sort-asc': tableParams.isSortBy('segment.average_grade', 'asc'),
+                        'sort-desc': tableParams.isSortBy('segment.average_grade', 'desc')
+                      }"
+                    ng-click="tableParams.sorting({'segment.average_grade' : tableParams.isSortBy('segment.average_grade', 'asc') ? 'desc' : 'asc'})">Average<br/>Grade</th>
+                <th class="sortable" ng-class="{
                         'sort-asc': tableParams.isSortBy('effort.average_watts', 'asc'),
                         'sort-desc': tableParams.isSortBy('effort.average_watts', 'desc')
                       }"
@@ -114,14 +123,20 @@
                         'sort-asc': tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'asc'),
                         'sort-desc': tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'desc')
                       }"
-                    ng-click="tableParams.sorting({'compared_to_effort.moving_time - effort.moving_time' : tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'asc') ? 'desc' : 'asc'})">Time Difference</th>
-            </tr>
+                    ng-click="tableParams.sorting({'compared_to_effort.moving_time - effort.moving_time' : tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'asc') ? 'desc' : 'asc'})">Time<br/>Difference</th>
+                <th class="sortable" ng-class="{
+                        'sort-asc': tableParams.isSortBy('per_diff', 'asc'),
+                        'sort-desc': tableParams.isSortBy('per_diff', 'desc')
+                      }"
+                    ng-click="tableParams.sorting({'per_diff' : tableParams.isSortBy('per_diff', 'asc') ? 'desc' : 'asc'})">% Difference</th>
+              </tr>
         </thead>
         <tbody>
             <tr ng-repeat="c in $data">
                 <td><a target="_blank" href="http://www.strava.com/segments/{{c.segment.id}}">{{c.segment.name}}</a></td>
                 <td>{{c.effort.distance | feet:measurement_preference}}</td>
                 <td>({{c.compared_to_effort.distance | feet:measurement_preference}})</td>
+                <td>{{c.segment.average_grade}}%</td>
                 <td>{{c.effort.average_watts}}</td>
                 <td>({{c.compared_to_effort.average_watts}})</td>
                 <td>{{c.effort.average_heartrate}}</td>
@@ -131,6 +146,7 @@
                 <td>{{c.effort.moving_time | seconds}}</td>
                 <td>({{c.compared_to_effort.moving_time | seconds}})</td>
                 <td style="text-align: right;"><span style="white-space: nowrap;" ng-class="{'red' : (c.compared_to_effort.moving_time - c.effort.moving_time) < 0}">{{c.compared_to_effort.moving_time - c.effort.moving_time | secondstotime}}</span></td>
+                <td><span ng-class="{'red':c.per_diff<0}">{{c.per_diff*100 | number:2}}</span></td>
             </tr>
         </tbody>
     </table>

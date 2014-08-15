@@ -213,7 +213,6 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                         }
                     });
 
-                    $scope.comparison = data;
                     var sum = 0;
                     var win = 0;
                     var loss = 0;
@@ -230,9 +229,12 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                         } else {
                             tied++;
                         }
+                        data.comparisons[i].per_diff = diff/ c.effort.moving_time;
                     }
 
-                    $scope.weighted_average = get_weighted_average(data.comparisons);
+                    $scope.comparison = data;
+                    $scope.weighted_average_distance = get_distance_weighted_average(data.comparisons);
+                    $scope.weighted_average_climb = get_climbing_weighted_average(data.comparisons);
                     $scope.total_time_difference = sum;
                     $scope.wins = win;
                     $scope.losses = loss;
