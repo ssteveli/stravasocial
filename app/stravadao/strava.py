@@ -36,9 +36,8 @@ class Strava():
             client_secret=pyconfig.get('strava.client_secret'),
             code=code)
 
-    @timing('strava_get_activities')
-    def get_activities(self, **kwargs):
-        return self.client.get_activities(**kwargs)
+    def get_activities(self, after):
+        return self.client.get_activities(after=after)
 
     @timing('strava_get_athlete')
     @cache.cache('strava_get_athlete', expire=3600)

@@ -118,11 +118,29 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
         };
     }]);
 
-appControllers.controller('NewComparisonController', ['$scope', '$http',
-    function($scope, $http) {
+appControllers.controller('NewComparisonController', ['$scope', '$http', 'ngTableParams',
+    function($scope, $http, ngTableParams) {
         $scope.days_ago = 1;
 
+        $scope.changeSelection = function(activity) {
+            console.log(JSON.stringify(activity));
+        }
+
         $scope.openLaunch = function() {
+            $http.get('/api/strava/activities').
+                success(function (data) {
+                    $scope.activities = data;
+                    $scope.activityTableParams = new ngTableParams({
+                        page: 1,
+                        count: 10
+                    },{
+                        total: data.length,
+                        getData: function($defer, params) {
+                            params.total(data.length);
+                            $defer.resolve(data.slice((params.page()-1) * params.count(), params.page() * params.count()));
+                        }
+                    });
+                });
             $http.get('/api/strava/athlete/plan').
                 success(function (data) {
                     if (data.is_execution_allowed) {

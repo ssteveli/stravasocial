@@ -13,6 +13,7 @@ from stravadao.strava import Strava
 from util.idgenerator import IdGenerator
 import datetime
 import urllib
+from datetime import date, timedelta
 
 app = Flask(__name__)
 idgen = IdGenerator()
@@ -215,6 +216,23 @@ def getAthletePlan():
 
     p = Plan(current_athlete)
     return Response(dumps(p.get_plan()), mimetype='application/json')
+
+@app.route('/api/strava/activities')
+def get_activities():
+    activities = get_stravadao().get_activities(date.today()-timedelta(days=360))
+
+    results = []
+    for a in activities:
+        results.append({
+            'id': a.id,
+            'name': a.name,
+            'start_date_local': str(a.start_date_local),
+            'distance': int(a.distance)
+        })
+
+    results.sort(key=lambda x: x['start_date_local'], reverse=True)
+
+    return Response(dumps(results), mimetype='application/json')
 
 @app.route('/api/strava/authorization')
 def createAuthorization():

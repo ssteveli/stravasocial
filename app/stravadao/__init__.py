@@ -10,6 +10,8 @@ def activity_get_state(self):
     activity = {
         'id': self.id,
         'name': self.name,
+        'distance': self.distance,
+        'start_time_local': self.start_date_local,
         'segment_efforts': []
     }
 

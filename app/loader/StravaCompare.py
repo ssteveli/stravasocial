@@ -109,7 +109,7 @@ class StravaCompare:
 
     def getActivities(self, days=31):
         print 'getting activities for the past {days} days'.format(days=days)
-        activities = list(self.sd.get_activities(after=date.today()-timedelta(days=days)))
+        activities = list(self.sd.get_activities(date.today()-timedelta(days=days)))
         print 'found {count} activities in the past {days} days'.format(count=len(activities), days=days)
 
         return activities
