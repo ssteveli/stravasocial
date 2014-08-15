@@ -38,7 +38,7 @@
         New Comparison
     </button>
     <div modal-show modal-visible="showDialog" class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
@@ -68,12 +68,12 @@
                             <accordion-group heading="Select Specific Activities" is-open="$parent.acc2open">
                                 <span ng-if="loading"><img src="/assets/loading.gif"/> Loading activities, please wait...</span>
                                 <table ng-if="!loading" ng-table="atableParams" class="table ng-table-rowselected">
-                                    <tr ng-repeat="a in $adata"
-                                        ng-click="a.$selected = !a.$selected"
+                                    <tr ng-repeat="a in $data"
+                                        ng-click="a.$selected = !a.$selected; changeSelection(a);"
                                         ng-class="{'active': a.$selected}">
-                                        <td data-title="'Date'">{{a.start_date_local}}</td>
+                                        <td data-title="'Date'" style="white-space: nowrap;">{{a.start_date_local}}</td>
                                         <td data-title="'Activity Name'">{{a.name}}</td>
-                                        <td data-title="'Distance'">{{a.distance | feet:measurement_preference}}</td>
+                                        <td data-title="'Distance'" style="white-space: nowrap;">{{a.distance | feet:measurement_preference}}</td>
                                     </tr>
                                 </table>
                             </accordion-group>

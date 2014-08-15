@@ -17,7 +17,7 @@ class StravaCompare:
         self.sd = Strava(access_token)
 
     @timing('compare')
-    def compare(self, days=1):
+    def compare(self, days=1, activity_ids=None):
         print 'comparing {athlete_id} to {compare_to_athlete_id}'.format(athlete_id=self.athlete_id, compare_to_athlete_id=self.compare_to_athlete_id)
 
         result = {
@@ -29,7 +29,14 @@ class StravaCompare:
         }
         self.fireCallback('started', state='Running', started_ts=result['started_ts'])
 
-        activities = self.getActivities(days=days)
+
+        activities = []
+
+        if days is not None:
+            activities = self.getActivities(days=days)
+        elif activity_ids is not None:
+            for aid in activity_ids:
+                activities.append(self.sd.get_activity(aid))
 
         count = 0
         for activity in activities:

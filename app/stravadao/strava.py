@@ -36,7 +36,8 @@ class Strava():
             client_secret=pyconfig.get('strava.client_secret'),
             code=code)
 
-    @cache.cache('strava_get_activities')
+    @timing('strava_get_activities')
+    @cache.cache('strava_get_activities', expire=3600)
     def get_activities(self, after):
         activities = []
 

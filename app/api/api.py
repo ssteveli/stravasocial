@@ -62,14 +62,17 @@ def launchComparison():
     if not con.ff.isOn('comparisons', default=True):
         abort(403, 'comparisons are currently turned off')
 
-    if 'days' not in req:
+    if 'days' not in req and 'activity_ids' not in req:
         req['days'] = 1
 
-    if req['days'] < 0 or req['days'] > 10:
+    if 'days' in req and (req['days'] < 0 or req['days'] > 10):
         abort(403, 'invalid days value, must be between 1 and 10')
 
     if 'compare_to_athlete_id' not in req or get_stravadao().get_athlete(req['compare_to_athlete_id']) is None:
         abort(403, 'athlete to compare against is missing or was not found')
+
+    if 'days' not in req and len(req['activity_ids']) == 0:
+        abort(403, 'no activity ids or days parameter specified')
 
     if athlete['athlete_id'] == req['compare_to_athlete_id']:
         abort(403, 'you want to compare against yourself?')
@@ -81,6 +84,13 @@ def launchComparison():
             'compare_to_athlete_id': req['compare_to_athlete_id'],
             'comparisons': []
         }
+
+        if 'days' in req:
+            c['days'] = req['days']
+
+        if 'activity_ids' in req:
+            c['activity_ids'] = req['activity_ids']
+
         _id = con.comparisons.insert(c)
 
         # now it's time to launch the gearman background job
@@ -88,11 +98,19 @@ def launchComparison():
             'athlete_id': athlete['athlete_id'],
             'compare_to_athlete_id': req['compare_to_athlete_id'],
             'access_token': athlete['access_token'],
-            'days': req['days'],
             'id': str(_id),
+
             'submitted_ts': int(time.time()),
             'state': 'Submitted'
         }
+
+        if 'days' in req:
+            job_details['days'] = req['days']
+
+        if 'activity_ids' in req:
+            job_details['activity_ids'] = req['activity_ids']
+
+        print 'job {}'.format(dumps(job_details))
         job_request = con.gearmanClient.submit_job('StravaCompare', json.dumps(job_details), background=True)
         con.comparisons.update({'_id': _id}, {'$set': {'job_id': job_request.job.unique}})
         c['job_id'] = job_request.job.unique

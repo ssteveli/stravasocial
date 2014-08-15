@@ -123,18 +123,30 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
 
 appControllers.controller('NewComparisonController', ['$scope', '$http', '$resource', '$filter', 'ngTableParams',
     function($scope, $http, $resource, $filter, ngTableParams) {
-        $scope.days_ago = 1;
+        $http.get('/api/strava/athlete').
+            success(function(data) {
+                $scope.athlete = data;
 
-        $scope.changeSelection = function(activity) {
-            console.log(JSON.stringify(activity));
-        }
+                if (mp == undefined) {
+                    mp = data.measurement_preference;
+                    $scope.measurement_preference = mp;
+                } else {
+                    $scope.measurement_preference = mp;
+                }
+
+            }).error(function(error) {
+                console.log('athlete resource error: ' + error);
+                $scope.athlete = null;
+            });
+
+        $scope.days_ago = undefined;
 
         $scope.openLaunch = function() {
             $scope.$watch('acc2open', function() {
                 if ($scope.acc2open) {
                     $scope.loading = true;
-                    $scope.adata = $resource('/api/strava/activities').query();
-                    $scope.adata.$promise.then(function (data) {
+                    $scope.data = $resource('/api/strava/activities').query();
+                    $scope.data.$promise.then(function (data) {
                         $scope.loading = false;
                         $scope.atableParams = new ngTableParams({
                             page: 1,
@@ -179,18 +191,32 @@ appControllers.controller('NewComparisonController', ['$scope', '$http', '$resou
             $scope.showDialog = false;
         };
 
+        $scope.selectedActivities = []
+
+        $scope.changeSelection= function(activity) {
+            if (activity.$selected) {
+                $scope.selectedActivities.push(activity.id);
+            } else {
+                var idx = $scope.selectedActivities.indexOf(activity.id);
+                if (idx > -1)
+                    $scope.selectedActivities.splice(idx, 1);
+            }
+        }
+
         $scope.submitLaunch = function() {
             $scope.showDialog = false;
 
-            req = {
-                'compare_to_athlete_id': $scope.compare_to_athlete_id,
-                'days': $scope.days_ago
+            var req = {
+                'compare_to_athlete_id': $scope.compare_to_athlete_id
             };
 
-            $http.post('/api/strava/comparisons', {
-                'compare_to_athlete_id': $scope.compare_to_athlete_id,
-                'days': $scope.days_ago
-            }).success(function (data) {
+            if ($scope.acc2open) {
+                req.activity_ids = $scope.selectedActivities;
+            } else {
+                req.days = $scope.days_ago;
+            }
+
+            $http.post('/api/strava/comparisons', req).success(function (data) {
                 $scope.$emit('newlaunch', data);
             }).error(function(error) {
                 console.log('error');
