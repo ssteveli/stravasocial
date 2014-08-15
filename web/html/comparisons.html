@@ -27,7 +27,7 @@
                     <a target="_blank" href="http://www.strava.com/athletes/{{c.compare_to_athlete_id}}">{{c.compare_to_athlete.firstname}} {{c.compare_to_athlete.lastname}}</a>
                 </span>
             </td>
-            <td data-title="'How many segments in common?'" sortable="'comparisons.length'">{{c.comparisons.length}}</td>
+            <td data-title="'How many segments in common?'" sortable="'comparisons_count'">{{c.comparisons_count}}</td>
             <td><span class="glyphicon glyphicon-trash" ng-click="deleteComparison(c.id)"></span></td>
         </tr>
     </table>

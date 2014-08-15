@@ -108,19 +108,32 @@ def getComparisonsBySession():
 
     result = []
 
-    for r in con.comparisons.find({'athlete_id': athlete['athlete_id']}) if not is_role('admin') else con.comparisons.find({}):
-        if 'compare_to_athlete_id' in r:
-            r['compare_to_athlete'] = get_athlete_dict(r['compare_to_athlete_id'])
-            r['athlete'] = get_athlete_dict(r['athlete_id'])
-            r['id'] = str(r['_id'])
-            r.pop('_id')
+    is_admin = is_role('admin')
+    q = {'athlete_id': athlete['athlete_id']} if not is_admin else {}
+    agg = con.comparisons.aggregate([
+        {'$match': q},
+        {'$unwind': '$comparisons'},
+        {'$group': {
+            '_id': {
+                '_id': '$_id',
+                'athlete_id': '$athlete_id',
+                'compare_to_athlete_id': '$compare_to_athlete_id',
+                'started_ts': '$started_ts',
+                'completed_ts': '$completed_ts'
+            },
+            'comparisons_count': {'$sum': 1}
+        }}
+    ])
 
-            if is_role('admin'):
-                r['viewtype'] = 'admin'
-
-            result.append(r)
-        else:
-            print('comparison appears to be invalid, it does not contain a compare_to_athlete_id field: {}'.format(dumps(r)))
+    for r in agg['result']:
+        x = r['_id']
+        x['id'] = str(x['_id'])
+        x['comparisons_count'] = r['comparisons_count']
+        if is_admin:
+            x['viewtype'] = 'admin'
+        x['compare_to_athlete'] = get_athlete_dict(x['compare_to_athlete_id'])
+        x['athlete'] = get_athlete_dict(x['athlete_id'])
+        result.append(x)
 
     return Response(dumps(result), mimetype='application/json')
 
@@ -367,10 +380,8 @@ def get_stravadao():
 
     auth_header = request.headers.get('Authorization')
     if auth_header is not None:
-        print 'using token from header'
         token = auth_header.rsplit(' ', 1)[1]
     else:
-        print 'expecting token in session'
         session_id = request.cookies.get('stravaSocialSessionId')
 
         if session_id is not None:
@@ -379,7 +390,6 @@ def get_stravadao():
             if authorization is not None and 'access_token' in authorization:
                 token = authorization['access_token']
 
-    print 'using access token: {}'.format(token)
     return Strava(token)
 
 if __name__ == '__main__':
