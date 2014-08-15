@@ -37,8 +37,14 @@ class Strava():
             code=code)
 
     @timing('strava_get_activities')
-    def get_activities(self, **kwargs):
-        return self.client.get_activities(**kwargs)
+    @cache.cache('strava_get_activities', expire=3600)
+    def get_activities(self, after):
+        activities = []
+
+        for a in list(self.client.get_activities(after=after)):
+            activities.append(a)
+
+        return activities
 
     @timing('strava_get_athlete')
     @cache.cache('strava_get_athlete', expire=3600)

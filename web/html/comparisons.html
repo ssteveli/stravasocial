@@ -8,8 +8,9 @@
     <button type="button" class="close" ng-click="dismissInfo()"><span aria-hidden="true">&times;</span></button>
     {{info_message}}
 </div>
-<div loading-container="tableParams.settings().$loading">
-    <table ng-table="tableParams" class="table">
+<div>
+    <span ng-if="loading"><img src="/assets/loading.gif"/> Loading comparisons, please wait...</span>
+    <table ng-if="!loading" ng-table="tableParams" class="table">
         <tr ng-repeat="c in $data">
             <td data-title="'Executed'" sortable="'started_ts'">
                 <span ng-show="c.started_ts != undefined"><a href="/comparisons/{{c.id}}">{{c.started_ts * 1000 | timeago}}</a></span>
@@ -37,7 +38,7 @@
         New Comparison
     </button>
     <div modal-show modal-visible="showDialog" class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
@@ -53,19 +54,39 @@
                                 <span ng-show="athlete_validation">{{athlete_validation}}</span>
                             </span>
                         </div>
-                        <div class="form-group">
-                            <label for="days_ago">Number of days in the past to examine activities</label>
-                            <input class="form=control" type="number" min="1" max="10" id="days_ago" name="days_ago" ng-model="days_ago" required placeholder="Days Ago"/>
-                            <span class="help-block">
-                                <span class="error" ng-show="!newcomparisonform.days_ago.$valid">Must be between 1 and 10 days</span>
-                            </span>
-                        </div>
-                    </form>
+                        <h4>Determine which of your activites to examine:</h4>
+                        <accordion close-others="oneAtATime" ng-init="oneAtATime = true">
+                            <accordion-group heading="Activities in the Past ## Days">
+                                <div class="form-group">
+                                    <label for="days_ago">Number of days in the past to examine activities</label>
+                                    <input class="form=control" type="number" min="1" max="10" id="days_ago" name="days_ago" ng-model="days_ago" placeholder="Days Ago"/>
+                                            <span class="help-block">
+                                                <span class="error" ng-show="!newcomparisonform.days_ago.$valid">Must be between 1 and 10 days</span>
+                                            </span>
+                                </div>
+                            </accordion-group>
+                            <accordion-group heading="Select Specific Activities" is-open="$parent.acc2open">
+                                <span ng-if="loading"><img src="/assets/loading.gif"/> Loading activities, please wait...</span>
+                                <table ng-if="!loading" ng-table="atableParams" class="table ng-table-rowselected">
+                                    <tr ng-repeat="a in $data"
+                                        ng-click="a.$selected = !a.$selected; changeSelection(a);"
+                                        ng-class="{'active': a.$selected}">
+                                        <td data-title="'Date'" style="white-space: nowrap;">{{a.start_date_local}}</td>
+                                        <td data-title="'Activity Name'">{{a.name}}</td>
+                                        <td data-title="'Distance'" style="white-space: nowrap;">{{a.distance | feet:measurement_preference}}</td>
+                                    </tr>
+                                </table>
+                            </accordion-group>
+                        </accordion>
+                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" ng-click="closeLaunch()">Close</button>
                     <button type="button" class="btn btn-custom" ng-click="submitLaunch()" ng-disabled="isLaunchDisabled">Launch</button>
                 </div>
+                <script type="text/javascript">
+                    $('.collapse').on('hidden', function(e) {e.stopPropagation(); console.log('event: ' + JSON.stringify(e));});
+                </script>
             </div>
         </div>
     </div>
