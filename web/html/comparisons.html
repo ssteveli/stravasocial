@@ -8,8 +8,9 @@
     <button type="button" class="close" ng-click="dismissInfo()"><span aria-hidden="true">&times;</span></button>
     {{info_message}}
 </div>
-<div loading-container="tableParams.settings().$loading">
-    <table ng-table="tableParams" class="table">
+<div>
+    <span ng-if="loading"><img src="/assets/loading.gif"/> Loading comparisons, please wait...</span>
+    <table ng-if="!loading" ng-table="tableParams" class="table">
         <tr ng-repeat="c in $data">
             <td data-title="'Executed'" sortable="'started_ts'">
                 <span ng-show="c.started_ts != undefined"><a href="/comparisons/{{c.id}}">{{c.started_ts * 1000 | timeago}}</a></span>
@@ -64,9 +65,10 @@
                                             </span>
                                 </div>
                             </accordion-group>
-                            <accordion-group heading="Select Specific Activities">
-                                <table ng-table="activityTableParams" class="table ng-table-rowselected">
-                                    <tr ng-repeat="a in activities"
+                            <accordion-group heading="Select Specific Activities" is-open="$parent.acc2open">
+                                <span ng-if="loading"><img src="/assets/loading.gif"/> Loading activities, please wait...</span>
+                                <table ng-if="!loading" ng-table="atableParams" class="table ng-table-rowselected">
+                                    <tr ng-repeat="a in $adata"
                                         ng-click="a.$selected = !a.$selected"
                                         ng-class="{'active': a.$selected}">
                                         <td data-title="'Date'">{{a.start_date_local}}</td>

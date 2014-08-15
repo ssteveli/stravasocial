@@ -63,8 +63,11 @@ appControllers.controller('StravaReturnController', ['$scope', '$location', '$ht
 
 appControllers.controller('ComparisonController', ['$scope', '$http', '$routeParams', '$timeout', '$resource', '$filter', 'ngTableParams',
     function ($scope, $http, $routeParams, $timeout, $resource, $filter, ngTableParams) {
+        $scope.loading = true;
+
         $scope.data = $resource('/api/strava/comparisons').query();
         $scope.data.$promise.then(function (data) {
+            $scope.loading = false;
             $scope.tableParams = new ngTableParams({
                 page: 1,
                 count: 10,
@@ -118,8 +121,8 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
         };
     }]);
 
-appControllers.controller('NewComparisonController', ['$scope', '$http', 'ngTableParams',
-    function($scope, $http, ngTableParams) {
+appControllers.controller('NewComparisonController', ['$scope', '$http', '$resource', '$filter', 'ngTableParams',
+    function($scope, $http, $resource, $filter, ngTableParams) {
         $scope.days_ago = 1;
 
         $scope.changeSelection = function(activity) {
@@ -127,20 +130,26 @@ appControllers.controller('NewComparisonController', ['$scope', '$http', 'ngTabl
         }
 
         $scope.openLaunch = function() {
-            $http.get('/api/strava/activities').
-                success(function (data) {
-                    $scope.activities = data;
-                    $scope.activityTableParams = new ngTableParams({
-                        page: 1,
-                        count: 10
-                    },{
-                        total: data.length,
-                        getData: function($defer, params) {
-                            params.total(data.length);
-                            $defer.resolve(data.slice((params.page()-1) * params.count(), params.page() * params.count()));
-                        }
+            $scope.$watch('acc2open', function() {
+                if ($scope.acc2open) {
+                    $scope.loading = true;
+                    $scope.adata = $resource('/api/strava/activities').query();
+                    $scope.adata.$promise.then(function (data) {
+                        $scope.loading = false;
+                        $scope.atableParams = new ngTableParams({
+                            page: 1,
+                            count: 10
+                        }, {
+                            total: 0,
+                            getData: function ($defer, params) {
+                                params.total(data.length);
+                                $defer.resolve(data.slice((params.page() - 1) * params.count(), params.page() * params.count()));
+                            }
+                        });
                     });
-                });
+                }
+            });
+
             $http.get('/api/strava/athlete/plan').
                 success(function (data) {
                     if (data.is_execution_allowed) {
