@@ -127,13 +127,17 @@ def getComparisonsBySession():
 
     for r in agg['result']:
         x = r['_id']
-        x['id'] = str(x['_id'])
-        x['comparisons_count'] = r['comparisons_count']
-        if is_admin:
-            x['viewtype'] = 'admin'
-        x['compare_to_athlete'] = get_athlete_dict(x['compare_to_athlete_id'])
-        x['athlete'] = get_athlete_dict(x['athlete_id'])
-        result.append(x)
+
+        if 'compare_to_athlete_id' in x:
+            x['id'] = str(x['_id'])
+            x['comparisons_count'] = r['comparisons_count']
+            if is_admin:
+                x['viewtype'] = 'admin'
+            x['compare_to_athlete'] = get_athlete_dict(x['compare_to_athlete_id'])
+            x['athlete'] = get_athlete_dict(x['athlete_id'])
+            result.append(x)
+        else:
+            print 'comparison is invalid, does not contain compare_to_athlete_id: {}'.format(dumps(x))
 
     return Response(dumps(result), mimetype='application/json')
 
