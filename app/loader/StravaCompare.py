@@ -33,7 +33,7 @@ class StravaCompare:
         activities = []
 
         if days is not None:
-            activities = self.getActivities(days=days)
+            activities = self.getActivities(self.athlete_id, days=days)
         elif activity_ids is not None:
             for aid in activity_ids[:10]:
                 activities.append(self.sd.get_activity(aid))
@@ -114,7 +114,7 @@ class StravaCompare:
         return result
 
 
-    def getActivities(self, days=31):
+    def getActivities(self, athlete_id, days=31):
         print 'getting activities for the past {days} days'.format(days=days)
         activities = list(self.sd.get_activities(date.today()-timedelta(days=days)))
         print 'found {count} activities in the past {days} days'.format(count=len(activities), days=days)

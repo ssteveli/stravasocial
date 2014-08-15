@@ -237,7 +237,9 @@ def getAthletePlan():
 
 @app.route('/api/strava/activities')
 def get_activities():
-    activities = get_stravadao().get_activities(date.today()-timedelta(days=360))
+    athlete = validateSessionAndGetAthlete()
+
+    activities = get_stravadao().get_activities(athlete['athlete_id'], date.today()-timedelta(days=360))
 
     results = []
     for a in activities:

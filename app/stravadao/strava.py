@@ -38,7 +38,7 @@ class Strava():
 
     @timing('strava_get_activities')
     @cache.cache('strava_get_activities', expire=3600)
-    def get_activities(self, after):
+    def get_activities(self, athlete_id, after):
         activities = []
 
         for a in list(self.client.get_activities(after=after)):
