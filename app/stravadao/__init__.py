@@ -11,31 +11,32 @@ def activity_get_state(self):
         'id': self.id,
         'name': self.name,
         'distance': self.distance,
-        'start_time_local': self.start_date_local,
+        'start_date_local': self.start_date_local,
         'segment_efforts': []
     }
 
-    for effort in list(self.segment_efforts):
-        activity['segment_efforts'].append({
-            'segment': {
-                'id': effort.segment.id,
-                'name': effort.segment.name,
-                'average_grade': effort.segment.average_grade
-            },
-            'athlete': {
-                'id': self.athlete.id if self.athlete is not None and self.athlete.id is not None else -1
-            },
-            'activity': {
-                'id': self.id
-            },
-            'moving_time': effort.moving_time.total_seconds(),
-            'elapsed_time': effort.elapsed_time.total_seconds(),
-            'distance': effort.distance.get_num(),
-            'average_watts': effort.average_watts,
-            'average_heartrate': effort.average_heartrate,
-            'max_heartrate': effort.max_heartrate,
-            'average_cadence': effort.average_cadence
-        })
+    if self.segment_efforts is not None:
+        for effort in list(self.segment_efforts):
+            activity['segment_efforts'].append({
+                'segment': {
+                    'id': effort.segment.id,
+                    'name': effort.segment.name,
+                    'average_grade': effort.segment.average_grade
+                },
+                'athlete': {
+                    'id': self.athlete.id if self.athlete is not None and self.athlete.id is not None else -1
+                },
+                'activity': {
+                    'id': self.id
+                },
+                'moving_time': effort.moving_time.total_seconds(),
+                'elapsed_time': effort.elapsed_time.total_seconds(),
+                'distance': effort.distance.get_num(),
+                'average_watts': effort.average_watts,
+                'average_heartrate': effort.average_heartrate,
+                'max_heartrate': effort.max_heartrate,
+                'average_cadence': effort.average_cadence
+            })
     return activity
 
 def activity_set_state(self, d):
