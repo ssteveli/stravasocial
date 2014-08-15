@@ -76,6 +76,7 @@
                                         <td data-title="'Distance'" style="white-space: nowrap;">{{a.distance | feet:measurement_preference}}</td>
                                     </tr>
                                 </table>
+                                <span ng-if="!loading"><small>Limit of 10 activities, any selection beyond 10 will be dropped.</small></span>
                             </accordion-group>
                         </accordion>
                      </form>

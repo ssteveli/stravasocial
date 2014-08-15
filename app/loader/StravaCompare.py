@@ -35,7 +35,7 @@ class StravaCompare:
         if days is not None:
             activities = self.getActivities(days=days)
         elif activity_ids is not None:
-            for aid in activity_ids:
+            for aid in activity_ids[:10]:
                 activities.append(self.sd.get_activity(aid))
 
         count = 0
