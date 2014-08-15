@@ -1,6 +1,6 @@
 FROM dockerfile/python
 
-RUN wget -O /tmp/requirements.txt https://raw.githubusercontent.com/ssteveli/stravasocial/adding_strava_caching/app/api/requirements.txt
+RUN wget -O /tmp/requirements.txt https://raw.githubusercontent.com/ssteveli/stravasocial/master/app/api/requirements.txt
 RUN pip install -r /tmp/requirements.txt
 
 RUN cd /tmp; git clone https://github.com/ssteveli/stravalib.git
