@@ -9,6 +9,7 @@ from pymongo import MongoClient
 import urllib2
 from time import time
 import pyconfig
+import sys
 
 class Container():
     def __init__(self):
@@ -73,8 +74,14 @@ def task_listener_compare(worker, job):
 
         return json_util.dumps(comparison['_id'])
     except:
-        print 'job error: {error}'.format(error=traceback.format_exc())
-        raise
+        print 'job {} failed'.format(json.dumps(job))
+        traceback.print_exc(file=sys.stdout)
+
+        c.comparisons.update({'_id': ObjectId(jd['id'])}, {'$set': {
+            'state': 'Error',
+            'completed_ts': int(time.time()),
+            'error_message': traceback.extract_tb()
+        }}, upsert=True)
 
 print 'registering gearman StravaCompare task'
 c.gmworker.set_client_id('StravaCompare')
