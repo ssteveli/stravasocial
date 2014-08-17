@@ -71,7 +71,13 @@ class Strava():
         print 'getting efforts for athlete {}, segment {}, limit {}'.format(athlete_id, segment_id, limit)
 
         efforts = []
-        for effort in list(self.client.get_segment_efforts(segment_id, athlete_id, limit=limit)):
-            efforts.append(effort)
+        try:
+            for effort in list(self.client.get_segment_efforts(segment_id, athlete_id, limit=limit)):
+                efforts.append(effort)
+        except HTTPError as e:
+            if e.message.startswith('404'):
+                return efforts
+            else:
+                raise e
 
         return efforts

@@ -7,7 +7,7 @@ import json
 import traceback
 from pymongo import MongoClient
 import urllib2
-from time import time
+import time
 import pyconfig
 import sys
 
@@ -67,24 +67,23 @@ def task_listener_compare(worker, job):
             id=comparison['_id'],
             callback=handle_event
         )
-        try:
-            if 'activity_ids' in jd:
-                ct.compare(days=None, activity_ids=jd['activity_ids'])
-            else:
-                ct.compare(days=jd['days'])
-        except urllib2.HTTPError as e:
-            handle_event('error', completed_ts=int(time.time()), error_message=e.message)
 
-        return json_util.dumps(comparison['_id'])
+        if 'activity_ids' in jd:
+            ct.compare(days=None, activity_ids=jd['activity_ids'])
+        else:
+            ct.compare(days=jd['days'])
+
     except:
-        print 'job {} failed'.format(json.dumps(job))
+        print 'job {} failed'.format(str(job))
         traceback.print_exc(file=sys.stdout)
 
         c.comparisons.update({'_id': ObjectId(jd['id'])}, {'$set': {
             'state': 'Error',
-            'completed_ts': int(time.time()),
+            'completed_ts': int(time()),
             'error_message': traceback.extract_tb()
         }}, upsert=True)
+
+    return json_util.dumps(comparison['_id'])
 
 print 'registering gearman StravaCompare task'
 c.gmworker.set_client_id('StravaCompare')
