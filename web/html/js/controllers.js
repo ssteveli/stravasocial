@@ -270,6 +270,8 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                     var win = 0;
                     var loss = 0;
                     var tied = 0;
+                    var ddata = [];
+                    var cdata = [];
 
                     for (var i=0; i<data.comparisons.length; i++) {
                         var c = data.comparisons[i];
@@ -282,7 +284,61 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                         } else {
                             tied++;
                         }
-                        data.comparisons[i].per_diff = diff/ c.effort.moving_time;
+
+                        data.comparisons[i].per_diff = diff/c.effort.moving_time;
+
+                        ddata.push({"x": c.effort.distance, "y": diff, "size": diff/c.effort.moving_time, "text": c.segment.name});
+                        cdata.push({"x": c.segment.average_grade, "y": diff, "size": diff/c.effort.moving_time, "text": c.segment.name});
+                    }
+
+                    $scope.distanceScatter = [
+                        {
+                            "key": "Distance",
+                            "values": ddata
+                        }
+                    ];
+
+                    $scope.climbScatter = [
+                        {
+                            "key": "Grade",
+                            "values": cdata
+                        }
+                    ];
+
+                    $scope.$on('elementMouseover.tooltip.directive', function(angularEvent, event){
+                        angularEvent.targetScope.$parent.hovername = event.point.text;
+                        angularEvent.targetScope.$parent.hoverdiff = event.point.size;
+                        angularEvent.targetScope.$parent.$digest();
+                    });
+
+                    $scope.$on('elementMouseout.tooltip.directive', function(angularEvent, event){
+                        angularEvent.targetScope.$parent.hovername = undefined;
+                        angularEvent.targetScope.$parent.hoverdiff = undefined;
+                            angularEvent.targetScope.$parent.$digest();
+                    });
+
+                    $scope.scolorFunction = function() {
+                        return function(d, i) {
+                            return '#FC4C02';
+                        };
+                    }
+
+                    $scope.yAxisTickFormatFunction = function(x) {
+                        return function(d) {
+                            return d.toFixed(0) + 's';
+                        }
+                    }
+
+                    $scope.xAxisTickFormatFunction = function(x) {
+                        return function(d) {
+                            return format_distance(d, mp);
+                        }
+                    }
+
+                    $scope.xAxisTickFormatGradeFunction = function(x) {
+                        return function(d) {
+                            return d.toFixed(1) + '%';
+                        }
                     }
 
                     $scope.comparison = data;

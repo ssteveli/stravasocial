@@ -108,14 +108,7 @@ angular.module('myFilters', []).filter('timeago', function() {
     }
 }).filter('feet', function() {
     return function(input, pref) {
-        var i = parseFloat(input);
-
-        if (pref == 'feet') {
-            return (i * 0.000621371).toFixed(2) + ' mi';
-        } else {
-            return (i * 0.001).toFixed(2) + ' km';
-        }
-
+        return format_distance(input, pref);
     }
 }).filter('seconds', function() {
    return function(input) {
@@ -135,6 +128,16 @@ angular.module('myFilters', []).filter('timeago', function() {
         return format_seconds(input);
     }
 });
+
+function format_distance(input, pref) {
+    var i = parseFloat(input);
+
+    if (pref == 'feet') {
+        return (i * 0.000621371).toFixed(2) + ' mi';
+    } else {
+        return (i * 0.001).toFixed(2) + ' km';
+    }
+}
 
 function format_seconds(input) {
     var i = Math.abs(input);
