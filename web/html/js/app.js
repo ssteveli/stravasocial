@@ -9,6 +9,18 @@ var app = angular.module('app', [
     'ui.bootstrap'
 ]);
 
+app.run(['$rootScope', '$location', '$window', function ($rootScope, $location, $window) {
+    console.log('inside run');
+    $rootScope.$on('$routeChangeSuccess', function() {
+        if (!$window.ga) {
+            console.log('skipping google pageview, no ga available');
+            return;
+        }
+
+        $window.ga('send', 'pageview', {page: $location.path()});
+    });
+}]);
+
 app.config(['$routeProvider', '$locationProvider',
 	function($routeProvider, $locationProvider) {
 		$locationProvider.html5Mode(true);

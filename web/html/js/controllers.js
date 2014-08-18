@@ -3,8 +3,8 @@ var appControllers = angular.module('appControllers', ['ipCookie']);
 
 var mp = undefined;
 
-appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 'ipCookie',
-	function($scope, $routeParams, $http, ipCookie) {
+appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 'ipCookie', '$window',
+	function($scope, $routeParams, $http, ipCookie, $window) {
         $scope.athlete = null;
 
         $http.get('/api/strava/athlete').
@@ -17,6 +17,9 @@ appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 
                 } else {
                     $scope.measurement_preference = mp;
                 }
+
+                if ($window.ga)
+                    $window.ga('set', '&uid', data.id);
 
             }).error(function(error) {
                 console.log('athlete resource error: ' + error);
