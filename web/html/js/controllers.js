@@ -80,6 +80,7 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
                     var orderedData = params.sorting() ?
                         $filter('orderBy')(data, params.orderBy()) : data;
                     params.total(data.length);
+                    console.log('orderedData: ' + JSON.stringify(orderedData));
                     $defer.resolve(orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count()));
                 }
             });

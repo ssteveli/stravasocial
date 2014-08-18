@@ -81,6 +81,8 @@ def launchComparison():
         # create our db record
         c = {
             'athlete_id': athlete['athlete_id'],
+            'submitted_ts': int(time.time()),
+            'state': 'Submitted',
             'compare_to_athlete_id': req['compare_to_athlete_id'],
             'comparisons': []
         }
@@ -99,7 +101,6 @@ def launchComparison():
             'compare_to_athlete_id': req['compare_to_athlete_id'],
             'access_token': athlete['access_token'],
             'id': str(_id),
-
             'submitted_ts': int(time.time()),
             'state': 'Submitted'
         }
@@ -129,6 +130,8 @@ def getComparisonsBySession():
 
     is_admin = is_role('admin')
     q = {'athlete_id': athlete['athlete_id']} if not is_admin else {}
+    #results = con.comparisons.find(q)
+
     agg = con.comparisons.aggregate([
         {'$match': q},
         {'$unwind': '$comparisons'},
@@ -148,17 +151,19 @@ def getComparisonsBySession():
     running = False
     for r in agg['result']:
         x = r['_id']
-
+    #for x in results:
         if 'compare_to_athlete_id' in x:
             x['id'] = str(x['_id'])
             x['comparisons_count'] = r['comparisons_count']
+            #x['comparisons_count'] = len(x['comparisons'])
             if is_admin:
                 x['viewtype'] = 'admin'
             x['compare_to_athlete'] = get_athlete_dict(x['compare_to_athlete_id'])
             x['athlete'] = get_athlete_dict(x['athlete_id'])
 
-            if x['state'] == 'Running' or x['state'] == 'Submitted':
-                running = True
+            if 'state' in x:
+                if x['state'] == 'Running' or x['state'] == 'Submitted':
+                    running = True
 
             result.append(x)
         else:
@@ -167,7 +172,7 @@ def getComparisonsBySession():
     return Response(dumps(result),
         mimetype='application/json',
         headers={
-            'cache-control': 'no-cache' if running else 'max-age=60'
+            'cache-control': 'no-cache'
         })
 
 @app.route('/api/strava/comparisons/<comparison_id>', methods=['DELETE'])
@@ -200,6 +205,9 @@ def getComparisonBySession(comparisonid):
     comparison['id'] = str(comparison['_id'])
     comparison.pop('_id')
     comparison['url'] = request.path
+
+    if 'state' not in comparison:
+        comparison['state'] = 'Unknown'
 
     return Response(dumps(comparison),
         mimetype='application/json',

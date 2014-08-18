@@ -47,7 +47,10 @@
                 </div>
             </div>
             <table class="table" style="margin-top: 10px;">
-                <tr>
+                <tr ng-show="comparison.submitted_ts != undefined">
+                    <td>Submitted</td><td>{{comparison.submitted_ts*1000 | date:'medium'}}</td>
+                </tr>
+                <tr ng-show="comparison.started_ts != undefined">
                     <td>Started</td><td>{{comparison.started_ts*1000 | date:'medium'}}</td>
                 </tr>
                 <tr ng-show="comparison.completed_ts != undefined">

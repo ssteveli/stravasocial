@@ -10,28 +10,32 @@
 </div>
 <div>
     <span ng-if="loading"><img src="/assets/loading.gif"/> Loading comparisons, please wait...</span>
-    <table ng-if="!loading" ng-table="tableParams" class="table">
-        <tr ng-repeat="c in $data">
-            <td data-title="'Executed'" sortable="'started_ts'">
-                <span ng-show="c.started_ts != undefined"><a href="/comparisons/{{c.id}}">{{c.started_ts * 1000 | timeago}}</a></span>
-                <span ng-show="c.started_ts == undefined"><a href="/comparisons/{{c.id}}">Waiting to start</a></span>
-            </td>
-            <td data-title="'Processing time'">
-                <span ng-show="c.state == 'Running'">Running</span>
-                <span ng-show="c.completed_ts != undefined">{{c.completed_ts - c.started_ts | secondstotime}}</span>
-            </td>
-            <td data-title="'Compared to'" sortable="'compare_to_athlete.lastname'">
-                <span ng-show="c.viewtype == 'admin'">
-                    <a target="_blank" href="http://www.strava.com/athletes/{{c.athlete.id}}">{{c.athlete.firstname}} {{c.athlete.lastname}}</a> vs.
-                </span>
-                <span>
-                    <a target="_blank" href="http://www.strava.com/athletes/{{c.compare_to_athlete_id}}">{{c.compare_to_athlete.firstname}} {{c.compare_to_athlete.lastname}}</a>
-                </span>
-            </td>
-            <td data-title="'How many segments in common?'" sortable="'comparisons_count'">{{c.comparisons_count}}</td>
-            <td><span class="glyphicon glyphicon-trash" ng-click="deleteComparison(c.id)"></span></td>
-        </tr>
-    </table>
+    <div ng-if="!loading">
+        <table ng-table="tableParams" class="table">
+            <tbody>
+            <tr ng-repeat="c in $data">
+                <td data-title="'Executed'" sortable="'started_ts'">
+                    <span ng-show="c.started_ts != undefined"><a href="/comparisons/{{c.id}}">{{c.started_ts * 1000 | timeago}}</a></span>
+                    <span ng-show="c.started_ts == undefined"><a href="/comparisons/{{c.id}}">Waiting to start</a></span>
+                </td>
+                <td data-title="'Processing time'">
+                    <span ng-show="c.state == 'Running'">Running</span>
+                    <span ng-show="c.completed_ts != undefined">{{c.completed_ts - c.started_ts | secondstotime}}</span>
+                </td>
+                <td data-title="'Compared to'" sortable="'compare_to_athlete.lastname'">
+                    <span ng-show="c.viewtype == 'admin'">
+                        <a target="_blank" href="http://www.strava.com/athletes/{{c.athlete.id}}">{{c.athlete.firstname}} {{c.athlete.lastname}}</a> vs.
+                    </span>
+                    <span>
+                        <a target="_blank" href="http://www.strava.com/athletes/{{c.compare_to_athlete_id}}">{{c.compare_to_athlete.firstname}} {{c.compare_to_athlete.lastname}}</a>
+                    </span>
+                </td>
+                <td data-title="'How many segments in common?'" sortable="'comparisons_count'">{{c.comparisons_count}}</td>
+                <td><span class="glyphicon glyphicon-trash" ng-click="deleteComparison(c.id)"></span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 <div ng-controller="NewComparisonController" ng-init="scope = { isLaunchDisabled: true }">
     <button class="btn btn-custom btn-lg" ng-click="openLaunch()">
@@ -67,15 +71,17 @@
                             </accordion-group>
                             <accordion-group heading="Select Specific Activities" is-open="$parent.acc2open">
                                 <span ng-if="loading"><img src="/assets/loading.gif"/> Loading activities, please wait...</span>
-                                <table ng-if="!loading" ng-table="atableParams" class="table ng-table-rowselected">
-                                    <tr ng-repeat="a in $data"
-                                        ng-click="a.$selected = !a.$selected; changeSelection(a);"
-                                        ng-class="{'active': a.$selected}">
-                                        <td data-title="'Date'" style="white-space: nowrap;">{{a.start_date_local}}</td>
-                                        <td data-title="'Activity Name'">{{a.name}}</td>
-                                        <td data-title="'Distance'" style="white-space: nowrap;">{{a.distance | feet:measurement_preference}}</td>
-                                    </tr>
-                                </table>
+                                <div ng-if="!loading">
+                                    <table ng-table="atableParams" class="table ng-table-rowselected">
+                                        <tr ng-repeat="a in $data"
+                                            ng-click="a.$selected = !a.$selected; changeSelection(a);"
+                                            ng-class="{'active': a.$selected}">
+                                            <td data-title="'Date'" style="white-space: nowrap;">{{a.start_date_local}}</td>
+                                            <td data-title="'Activity Name'">{{a.name}}</td>
+                                            <td data-title="'Distance'" style="white-space: nowrap;">{{a.distance | feet:measurement_preference}}</td>
+                                        </tr>
+                                    </table>
+                                </div>
                                 <span ng-if="!loading"><small>Limit of 10 activities, any selection beyond 10 will be dropped.</small></span>
                             </accordion-group>
                         </accordion>
