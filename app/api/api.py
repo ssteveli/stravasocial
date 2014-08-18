@@ -130,44 +130,47 @@ def getComparisonsBySession():
 
     is_admin = is_role('admin')
     q = {'athlete_id': athlete['athlete_id']} if not is_admin else {}
-    #results = con.comparisons.find(q)
+    results = con.comparisons.find(q)
 
-    agg = con.comparisons.aggregate([
-        {'$match': q},
-        {'$unwind': '$comparisons'},
-        {'$group': {
-            '_id': {
-                '_id': '$_id',
-                'athlete_id': '$athlete_id',
-                'compare_to_athlete_id': '$compare_to_athlete_id',
-                'started_ts': '$started_ts',
-                'completed_ts': '$completed_ts',
-                'state': '$state'
-            },
-            'comparisons_count': {'$sum': 1}
-        }}
-    ])
+    # commented out because I get mongo to deal with an empty or missing comparisons array correctly
+    # agg = con.comparisons.aggregate([
+    #     {'$match': q},
+    #     {'$project':{
+    #             'numberOfComparisons': { '$size': '$comparisons' }
+    #         }
+    #     },
+    #     {'$unwind': '$comparisons'},
+    #     {'$group': {
+    #         '_id': {
+    #             '_id': '$_id',
+    #             'athlete_id': '$athlete_id',
+    #             'compare_to_athlete_id': '$compare_to_athlete_id',
+    #             'started_ts': '$started_ts',
+    #             'completed_ts': '$completed_ts',
+    #             'state': '$state',
+    #             'comparison_count': '$numberOfComparisons'
+    #         },
+    #         'comparisons_count': {'$sum': 1}
+    #     }}
+    # ])
 
-    running = False
-    for r in agg['result']:
-        x = r['_id']
-    #for x in results:
-        if 'compare_to_athlete_id' in x:
-            x['id'] = str(x['_id'])
-            x['comparisons_count'] = r['comparisons_count']
-            #x['comparisons_count'] = len(x['comparisons'])
-            if is_admin:
-                x['viewtype'] = 'admin'
-            x['compare_to_athlete'] = get_athlete_dict(x['compare_to_athlete_id'])
-            x['athlete'] = get_athlete_dict(x['athlete_id'])
-
-            if 'state' in x:
-                if x['state'] == 'Running' or x['state'] == 'Submitted':
-                    running = True
-
-            result.append(x)
+    for r in results:
+        if 'compare_to_athlete_id' in r:
+            result.append({
+                'id': str(r['_id']),
+                'comparisons_count': len(r['comparisons']) if 'comparisons' in r else 0,
+                'viewtype': 'admin' if is_admin else 'default',
+                'compare_to_athlete_id': r['compare_to_athlete_id'],
+                'compare_to_athlete': get_athlete_dict(r['compare_to_athlete_id']),
+                'athlete_id': r['athlete_id'],
+                'athlete': get_athlete_dict(r['athlete_id']),
+                'state': r['state'] if 'state' in r else 'Unknown',
+                'submitted_ts': r['submitted_ts'] if 'submitted_ts' in r else None,
+                'started_ts': r['started_ts'] if 'started_ts' in r else None,
+                'completed_ts': r['completed_ts'] if 'completed_ts' in r else None,
+            })
         else:
-            print 'comparison is invalid, does not contain compare_to_athlete_id: {}'.format(dumps(x))
+            print 'comparison is invalid, does not contain compare_to_athlete_id: {}'.format(dumps(r))
 
     return Response(dumps(result),
         mimetype='application/json',
@@ -193,6 +196,9 @@ def deleteComparison(comparison_id):
 
 @app.route('/api/strava/comparisons/<comparisonid>')
 def getComparisonBySession(comparisonid):
+    if comparisonid == 'undefined':
+        abort(404, 'comparisonid of {} was not found'.format(comparisonid))
+
     athlete = validateSessionAndGetAthlete()
 
     _id = ObjectId(str(comparisonid))
