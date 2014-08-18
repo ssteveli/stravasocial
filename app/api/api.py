@@ -138,12 +138,14 @@ def getComparisonsBySession():
                 'athlete_id': '$athlete_id',
                 'compare_to_athlete_id': '$compare_to_athlete_id',
                 'started_ts': '$started_ts',
-                'completed_ts': '$completed_ts'
+                'completed_ts': '$completed_ts',
+                'state': '$state'
             },
             'comparisons_count': {'$sum': 1}
         }}
     ])
 
+    running = False
     for r in agg['result']:
         x = r['_id']
 
@@ -154,11 +156,19 @@ def getComparisonsBySession():
                 x['viewtype'] = 'admin'
             x['compare_to_athlete'] = get_athlete_dict(x['compare_to_athlete_id'])
             x['athlete'] = get_athlete_dict(x['athlete_id'])
+
+            if x['state'] == 'Running' or x['state'] == 'Submitted':
+                running = True
+
             result.append(x)
         else:
             print 'comparison is invalid, does not contain compare_to_athlete_id: {}'.format(dumps(x))
 
-    return Response(dumps(result), mimetype='application/json')
+    return Response(dumps(result),
+        mimetype='application/json',
+        headers={
+            'cache-control': 'no-cache' if running else 'max-age=60'
+        })
 
 @app.route('/api/strava/comparisons/<comparison_id>', methods=['DELETE'])
 def deleteComparison(comparison_id):
@@ -191,8 +201,11 @@ def getComparisonBySession(comparisonid):
     comparison.pop('_id')
     comparison['url'] = request.path
 
-    return Response(dumps(comparison), mimetype='application/json')
-
+    return Response(dumps(comparison),
+        mimetype='application/json',
+        headers={
+           'cache-control': 'max-age=300' if comparison['state'] == 'Completed' else 'no-cache'
+        })
 
 @app.route('/api/strava/athlete')
 def getAthleteBySession():
@@ -206,7 +219,11 @@ def getAthlete(id):
     if requested_athlete is None:
         abort(404, 'the specified athlete {} was not found'.format(id))
 
-    return Response(json.dumps(requested_athlete), mimetype='application/json')
+    return Response(json.dumps(requested_athlete),
+        mimetype='application/json',
+        headers={
+            'cache-control': 'max-age=60'
+        })
 
 @app.route('/api/strava/athletes/<id>/clearcache', methods=['POST'])
 def clear_athlete_cache(id):
@@ -233,7 +250,11 @@ def getAthletePlan():
     current_athlete = validateSessionAndGetAthlete()
 
     p = Plan(current_athlete)
-    return Response(dumps(p.get_plan()), mimetype='application/json')
+    return Response(dumps(p.get_plan()),
+        mimetype='application/json',
+        headers={
+            'cache-control': 'max-age=60'
+        })
 
 @app.route('/api/strava/activities')
 def get_activities():
@@ -252,7 +273,11 @@ def get_activities():
 
     results.sort(key=lambda x: x['start_date_local'], reverse=True)
 
-    return Response(dumps(results), mimetype='application/json')
+    return Response(dumps(results),
+        mimetype='application/json',
+        headers={
+            'cache-control': 'max-age=120'
+        })
 
 @app.route('/api/strava/authorization')
 def createAuthorization():
@@ -341,7 +366,11 @@ def getStats():
             'with_access_tokens': con.db.athletes.find({'access_token': { '$ne': None }}).count()
         }
     }
-    return Response(json.dumps(stats), mimetype='application/json')
+    return Response(json.dumps(stats),
+        mimetype='application/json',
+        headers={
+            'cache-control': 'no-cache'
+        })
 
 def validateSessionAndGetAthlete():
     session_id = request.cookies.get('stravaSocialSessionId')
