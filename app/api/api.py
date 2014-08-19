@@ -15,6 +15,19 @@ import datetime
 import urllib
 from datetime import date, timedelta
 
+import logging
+import logging.handlers
+
+log = logging.getLogger("stravacompare")
+log.setLevel(logging.DEBUG)
+
+file = logging.handlers.RotatingFileHandler('/data/log/stravacompare-api.log', backupCount=5)
+file.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file.setFormatter(formatter)
+log.addHandler(file)
+
 app = Flask(__name__)
 idgen = IdGenerator()
 
@@ -111,12 +124,14 @@ def launchComparison():
         if 'activity_ids' in req:
             job_details['activity_ids'] = req['activity_ids']
 
-        print 'job {}'.format(dumps(job_details))
+        log.info('job created {}'.format(dumps(job_details)))
         job_request = con.gearmanClient.submit_job('StravaCompare', json.dumps(job_details), background=True)
         con.comparisons.update({'_id': _id}, {'$set': {'job_id': job_request.job.unique}})
         c['job_id'] = job_request.job.unique
         c['id'] = str(c['_id'])
         c.pop('_id')
+
+        log.info('job submitted {}'.format(dumps(c)))
 
         return Response(dumps(c), mimetype='application/json', status=201, headers={'Location':'/api/strava/comparisons/' + c['id']})
     else:
@@ -170,7 +185,7 @@ def getComparisonsBySession():
                 'completed_ts': r['completed_ts'] if 'completed_ts' in r else None,
             })
         else:
-            print 'comparison is invalid, does not contain compare_to_athlete_id: {}'.format(dumps(r))
+            log.warn('comparison is invalid, does not contain compare_to_athlete_id: {}'.format(dumps(r)))
 
     return Response(dumps(result),
         mimetype='application/json',
@@ -196,16 +211,20 @@ def deleteComparison(comparison_id):
 
 @app.route('/api/strava/comparisons/<comparisonid>')
 def getComparisonBySession(comparisonid):
+    athlete = validateSessionAndGetAthlete()
+
     if comparisonid == 'undefined':
         abort(404, 'comparisonid of {} was not found'.format(comparisonid))
-
-    athlete = validateSessionAndGetAthlete()
 
     _id = ObjectId(str(comparisonid))
     comparison = con.comparisons.find_one({'_id': ObjectId(str(comparisonid))})
 
-    if comparison is None or (athlete['athlete_id'] != comparison['athlete_id'] and not is_role('admin')):
-        abort(404, 'the specified comparison id was not found')
+    if comparison is None:
+        abort(404, 'the specified comparison id {} was not found'.format(comparisonid))
+
+    # if this isn't a public comparisons, then this athlete must be the originator
+    if athlete['athlete_id'] != comparison['athlete_id'] and not is_role('admin'):
+        abort(404, 'the specified comparison id {} was not found'.format(comparisonid))
 
     comparison['compare_to_athlete'] = get_athlete_dict(comparison['compare_to_athlete_id'])
     comparison['id'] = str(comparison['_id'])
@@ -385,6 +404,30 @@ def getStats():
         headers={
             'cache-control': 'no-cache'
         })
+
+def validateSession():
+    session_id = request.cookies.get('stravaSocialSessionId')
+
+    if session_id is None:
+        return False
+
+    authorization = con.authorizations.find_one({'id': session_id})
+
+    if authorization is None:
+        return False
+
+    if 'access_token' not in authorization:
+        return False
+
+    if 'athlete_id' not in authorization:
+        return False
+
+    athlete = get_stravadao().get_athlete(authorization['athlete_id'])
+
+    if athlete is None:
+        return False
+
+    return True
 
 def validateSessionAndGetAthlete():
     session_id = request.cookies.get('stravaSocialSessionId')

@@ -6,10 +6,21 @@ from bson import json_util, ObjectId
 import json
 import traceback
 from pymongo import MongoClient
-import urllib2
 import time
 import pyconfig
-import sys
+
+import logging
+import logging.handlers
+
+log = logging.getLogger("stravacompare")
+log.setLevel(logging.DEBUG)
+
+file = logging.handlers.RotatingFileHandler('/data/log/stravacompare-worker.log', backupCount=5)
+file.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file.setFormatter(formatter)
+log.addHandler(file)
 
 class Container():
     def __init__(self):
@@ -53,9 +64,9 @@ def handle_event(event_type, **kwargs):
         return
 
 def task_listener_compare(worker, job):
-    print 'received job: {job}'.format(job=str(job))
     try:
         jd = json.loads(job.data)
+        log.info('received job: {job}'.format(job=str(job)))
 
         # create our basic document if it doesn't exist
         comparison = c.comparisons.find_one({'_id': ObjectId(jd['id'])})
@@ -74,20 +85,26 @@ def task_listener_compare(worker, job):
             ct.compare(days=jd['days'])
 
     except:
-        print 'job {} failed'.format(str(job))
-        traceback.print_exc(file=sys.stdout)
+        print 'error'
+        log.exception('job failed')
 
+        print 'error again'
         c.comparisons.update({'_id': ObjectId(jd['id'])}, {'$set': {
             'state': 'Error',
             'completed_ts': int(time()),
             'error_message': traceback.extract_tb()
         }}, upsert=True)
 
+    print 'all done'
     return json_util.dumps(comparison['_id'])
 
-print 'registering gearman StravaCompare task'
-c.gmworker.set_client_id('StravaCompare')
-c.gmworker.register_task('StravaCompare', task_listener_compare)
+try:
+    log.info('registering StravaCompare worker with gearmand: %s', str(c.gmworker))
+    c.gmworker.set_client_id('StravaCompare')
+    c.gmworker.register_task('StravaCompare', task_listener_compare)
 
-print 'starting StravaCompare worker'
-c.gmworker.work()
+    log.info('starting worker')
+    c.gmworker.work()
+except:
+    log.exception('error starting StravaCompare worker')
+    raise

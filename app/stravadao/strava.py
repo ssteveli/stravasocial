@@ -5,6 +5,9 @@ from beaker.util import parse_cache_config_options
 import pyconfig
 from requests.exceptions import HTTPError
 
+import logging
+log = logging.getLogger("stravacompare.stravadao")
+
 cache_opts = {
     'cache.type': pyconfig.get('cache.type', 'file'),
     'cache.data_dir': pyconfig.get('cache.data_dir', '/tmp/cache/data'),
@@ -62,13 +65,13 @@ class Strava():
     @timing('strava_get_activity')
     @cache.cache('strava_get_activity')
     def get_activity(self, activity_id):
-        print 'getting detailed activity for activityId: {activityId}'.format(activityId = activity_id)
+        log.info('getting detailed activity for activityId: {activityId}'.format(activityId = activity_id))
         return self.client.get_activity(activity_id)
 
     @timing('strava_get_efforts')
     @cache.cache('strava_get_efforts', expire=3600)
     def get_efforts(self, segment_id, athlete_id, limit=1):
-        print 'getting efforts for athlete {}, segment {}, limit {}'.format(athlete_id, segment_id, limit)
+        log.info('getting efforts for athlete {}, segment {}, limit {}'.format(athlete_id, segment_id, limit))
 
         efforts = []
         try:

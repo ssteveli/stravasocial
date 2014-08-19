@@ -1,8 +1,4 @@
-import pyconfig
-
 from stravalib.model import Activity, BaseEffort, Athlete
-from stravalib import Client
-from util.timing import timing
 
 __author__ = 'ssteveli'
 

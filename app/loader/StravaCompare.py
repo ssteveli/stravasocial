@@ -6,6 +6,9 @@ from util.timing import timing
 
 from stravadao.strava import Strava
 
+import logging
+log = logging.getLogger('stravacompare.compare')
+
 class StravaCompare:
 
     def __init__(self, athlete_id=None, compare_to_athlete_id=None, access_token=None, id=None, callback=None):
@@ -18,7 +21,7 @@ class StravaCompare:
 
     @timing('compare')
     def compare(self, days=1, activity_ids=None):
-        print 'comparing {athlete_id} to {compare_to_athlete_id}'.format(athlete_id=self.athlete_id, compare_to_athlete_id=self.compare_to_athlete_id)
+        log.info('comparing {athlete_id} to {compare_to_athlete_id}'.format(athlete_id=self.athlete_id, compare_to_athlete_id=self.compare_to_athlete_id))
 
         result = {
             'started_ts': int(time.time()),
@@ -28,7 +31,6 @@ class StravaCompare:
             'comparisons': []
         }
         self.fireCallback('started', state='Running', started_ts=result['started_ts'])
-
 
         activities = []
 
@@ -41,16 +43,16 @@ class StravaCompare:
         count = 0
         for activity in activities:
             count = count + 1
-            print 'processing activity {i} of {total}'.format(i=count, total=len(activities))
+            log.info('processing activity {i} of {total}'.format(i=count, total=len(activities)))
             self.fireCallback('activity', current_activity_idx=count, total_activities=len(activities))
 
             dactivity = self.sd.get_activity(activity.id)
-            print 'i called getDetailedActivity asking for {} and got {} which has {} efforts'.format(activity.id, dactivity.id, list(dactivity.segment_efforts).__len__())
+            log.info('i called getDetailedActivity asking for {} and got {} which has {} efforts'.format(activity.id, dactivity.id, list(dactivity.segment_efforts).__len__()))
 
             ecount = 0
             for effort in list(dactivity.segment_efforts):
                 ecount = ecount + 1
-                print 'processing effort {i} of {total}'.format(i=ecount, total=len(list(dactivity.segment_efforts)))
+                log.info('processing effort {i} of {total}'.format(i=ecount, total=len(list(dactivity.segment_efforts))))
 
                 if self.segmentNotProcessedAlready(effort.segment.id, result['comparisons']):
                     cefforts = list(self.sd.get_efforts(effort.segment.id, self.compare_to_athlete_id))
@@ -105,19 +107,19 @@ class StravaCompare:
                         result['comparisons'].append(e)
                         self.fireCallback('match', effort=e)
                     else:
-                        print 'skipping effort {i}, segment {s} already processed'.format(i=ecount, s=effort.segment.id)
+                        log.info('skipping effort {i}, segment {s} already processed'.format(i=ecount, s=effort.segment.id))
 
         result['state'] = 'COMPLETED'
         result['completed_ts'] = int(time.time())
-        print 'completed execution in {duration}ms'.format(duration=(result['completed_ts']-result['started_ts']))
+        log.info('completed execution in {duration}ms'.format(duration=(result['completed_ts']-result['started_ts'])))
         self.fireCallback('complete', state='Completed', completed_ts=result['completed_ts'])
         return result
 
 
     def getActivities(self, athlete_id, days=31):
-        print 'getting activities for the past {days} days'.format(days=days)
-        activities = list(self.sd.get_activities(date.today()-timedelta(days=days)))
-        print 'found {count} activities in the past {days} days'.format(count=len(activities), days=days)
+        log.info('getting activities for the past {days} days'.format(days=days))
+        activities = list(self.sd.get_activities(athlete_id, date.today()-timedelta(days=days)))
+        log.info('found {count} activities in the past {days} days'.format(count=len(activities), days=days))
 
         return activities
 
