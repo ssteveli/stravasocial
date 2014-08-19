@@ -1,191 +1,194 @@
-
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-lg-2"><img ng-src="{{comparison.compare_to_athlete.profile}}" onerror="handleMissingImage(this);"/></div>
-        <div class="col-lg-3"><h2>{{comparison.compare_to_athlete.firstname}} {{comparison.compare_to_athlete.lastname}}</h2></div>
+<div ng-if="loading"><img src="/assets/loading.gif"/> Loading comparisons details... </div>
+<div ng-if="notfound">We're so sorry, the comparison you've requested was not found</div>
+<div ng-if="found">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-2"><img ng-src="{{comparison.compare_to_athlete.profile}}" onerror="handleMissingImage(this);"/></div>
+            <div class="col-lg-3"><h2>{{comparison.compare_to_athlete.firstname}} {{comparison.compare_to_athlete.lastname}}</h2></div>
+        </div>
     </div>
-</div>
-<div class="container" style="margin-top: 20px;">
-    <div class="row">
-        <div class="col-lg-3">
-            <div class="jumbotron" style="text-align: center;">
-                <h3>Common Segments</h3>
-                <h1>{{comparison.comparisons.length}}</h1>
+    <div class="container" style="margin-top: 20px;">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="jumbotron" style="text-align: center;">
+                    <h3>Common Segments</h3>
+                    <h1>{{comparison.comparisons.length}}</h1>
 
-            </div>
-        </div>
-        <div class="col-lg-3 winlosschart" style="text-align: center;">
-            <h4>Win/Loss</h4>
-            <nvd3-pie-chart
-                    data="chartData"
-                    id="winLossChart"
-                    margin="10"
-                    x="xFunction()"
-                    y="yFunction()"
-                    color="colorFunction()"
-                    showLabels="true"
-                    labelType="percent"
-                    showLegend="false"
-                    donut="true"
-                    donutLabelsOutside="true">
-                <svg height="225"></svg>
-                <small>{{wins}} win {{losses}} loss {{ties}} tie</small>
-             </nvd3-pie-chart>
-        </div>
-        <div class="col-lg-6">
-            <div class="container" ng-show="social_sharing">
-                <div class="row">
-                    <div class="col-sm-1" class="social">
-                        <fb:share-button type="box_count" href="{{location.absUrl()}}"></fb:share-button>
-                    </div>
-                    <div class="col-sm-1" class="social">
-                        <a href="https://twitter.com/share" class="twitter-share-button" data-lang="en" data-count="vertical">Tweet</a>
-                    </div>
-                    <div class="col-sm-1" class="social">
-                        <div class="g-plus" data-action="share" data-annotation="vertical-bubble" data-height="60"></div>
-                    </div>
                 </div>
             </div>
-            <table class="table" style="margin-top: 10px;">
-                <tr ng-show="comparison.submitted_ts != undefined">
-                    <td>Submitted</td><td>{{comparison.submitted_ts*1000 | date:'medium'}}</td>
-                </tr>
-                <tr ng-show="comparison.started_ts != undefined">
-                    <td>Started</td><td>{{comparison.started_ts*1000 | date:'medium'}}</td>
-                </tr>
-                <tr ng-show="comparison.completed_ts != undefined">
-                    <td>Completed</td><td>{{comparison.completed_ts*1000 | date:'medium'}}</td>
-                </tr>
-                <tr ng-show="comparison.completed_ts != undefined">
-                    <td>Processing Time</td><td>{{comparison.completed_ts - comparison.started_ts | secondstotime}}</td>
-                </tr>
-                <tr>
-                    <td>State</td><td>{{comparison.state}}</td>
-                </tr>
-                <tr>
-                    <td>Activities Examined</td>
-                    <td ng-show="comparison.state != 'Running'">{{comparison.total_activities}}</td>
-                    <td ng-show="comparison.state == 'Running'">{{comparison.current_activity_idx}} of {{comparison.total_activities}}</td>
-                </tr>
-                <tr ng-show="total_time_difference">
-                    <td>Total Time Difference</td>
-                    <td><span ng-class="{'red' : (total_time_difference) < 0}">{{total_time_difference | secondstotime}}</span></td>
-                </tr>
-                <tr ng-show="weighted_average_distance">
-                    <td>Distance WAD <i class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="Percentage you're faster or slower than {{comparison.compare_to_athlete.firstname}} with longer segments weighted higher in the score.   See the FAQ for more details." popover-placement="bottom" popover-append-to-body="true"></i></td>
-                    <td><span ng-class="{'red' : (weighted_average_distance) < 0}">{{weighted_average_distance | number:2}}%</span></td>
-                </tr>
-                <tr ng-show="weighted_average_climb">
-                    <td>Climbing WAD <i class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="Percentage you're faster or slower than {{comparison.compare_to_athlete.firstname}} with steeper segments weighted higher in the score.   See the FAQ for more details." popover-placement="bottom" popover-append-to-body="true"></i></td>
-                    <td><span ng-class="{'red' : (weighted_average_climb) < 0}">{{weighted_average_climb | number:2}}%</span></td>
-                </tr>
+            <div class="col-lg-3 winlosschart" style="text-align: center;">
+                <h4>Win/Loss</h4>
+                <nvd3-pie-chart
+                        data="chartData"
+                        id="winLossChart"
+                        margin="10"
+                        x="xFunction()"
+                        y="yFunction()"
+                        color="colorFunction()"
+                        showLabels="true"
+                        labelType="percent"
+                        showLegend="false"
+                        donut="true"
+                        donutLabelsOutside="true">
+                    <svg height="225"></svg>
+                    <small>{{wins}} win {{losses}} loss {{ties}} tie</small>
+                 </nvd3-pie-chart>
+            </div>
+            <div class="col-lg-6">
+                <div class="container" ng-show="social_sharing">
+                    <div class="row">
+                        <div class="col-sm-1" class="social">
+                            <fb:share-button type="box_count" href="{{location.absUrl()}}"></fb:share-button>
+                        </div>
+                        <div class="col-sm-1" class="social">
+                            <a href="https://twitter.com/share" class="twitter-share-button" data-lang="en" data-count="vertical">Tweet</a>
+                        </div>
+                        <div class="col-sm-1" class="social">
+                            <div class="g-plus" data-action="share" data-annotation="vertical-bubble" data-height="60"></div>
+                        </div>
+                    </div>
+                </div>
+                <table class="table" style="margin-top: 10px;">
+                    <tr ng-show="comparison.submitted_ts != undefined">
+                        <td>Submitted</td><td>{{comparison.submitted_ts*1000 | date:'medium'}}</td>
+                    </tr>
+                    <tr ng-show="comparison.started_ts != undefined">
+                        <td>Started</td><td>{{comparison.started_ts*1000 | date:'medium'}}</td>
+                    </tr>
+                    <tr ng-show="comparison.completed_ts != undefined">
+                        <td>Completed</td><td>{{comparison.completed_ts*1000 | date:'medium'}}</td>
+                    </tr>
+                    <tr ng-show="comparison.completed_ts != undefined">
+                        <td>Processing Time</td><td>{{comparison.completed_ts - comparison.started_ts | secondstotime}}</td>
+                    </tr>
+                    <tr>
+                        <td>State</td><td>{{comparison.state}}</td>
+                    </tr>
+                    <tr>
+                        <td>Activities Examined</td>
+                        <td ng-show="comparison.state != 'Running'">{{comparison.total_activities}}</td>
+                        <td ng-show="comparison.state == 'Running'">{{comparison.current_activity_idx}} of {{comparison.total_activities}}</td>
+                    </tr>
+                    <tr ng-show="total_time_difference">
+                        <td>Total Time Difference</td>
+                        <td><span ng-class="{'red' : (total_time_difference) < 0}">{{total_time_difference | secondstotime}}</span></td>
+                    </tr>
+                    <tr ng-show="weighted_average_distance">
+                        <td>Distance WAD <i class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="Percentage you're faster or slower than {{comparison.compare_to_athlete.firstname}} with longer segments weighted higher in the score.   See the FAQ for more details." popover-placement="bottom" popover-append-to-body="true"></i></td>
+                        <td><span ng-class="{'red' : (weighted_average_distance) < 0}">{{weighted_average_distance | number:2}}%</span></td>
+                    </tr>
+                    <tr ng-show="weighted_average_climb">
+                        <td>Climbing WAD <i class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="Percentage you're faster or slower than {{comparison.compare_to_athlete.firstname}} with steeper segments weighted higher in the score.   See the FAQ for more details." popover-placement="bottom" popover-append-to-body="true"></i></td>
+                        <td><span ng-class="{'red' : (weighted_average_climb) < 0}">{{weighted_average_climb | number:2}}%</span></td>
+                    </tr>
 
-            </table>
+                </table>
+            </div>
         </div>
     </div>
-</div>
-<tabset>
-    <tab heading="Detailed Data">
-        <div loading-container="tableParams.settings().$loading">
-            {{$loading}}
-            <table ng-table="tableParams" class="table">
-                <thead>
-                <tr>
-                    <th class="sortable" ng-class="{
-                        'sort-asc': tableParams.isSortBy('segment.name', 'asc'),
-                        'sort-desc': tableParams.isSortBy('segment.name', 'desc')
-                      }"
-                        ng-click="tableParams.sorting({'segment.name' : tableParams.isSortBy('segment.name', 'asc') ? 'desc' : 'asc'})" rowspan="2">Segment</th>
-                    <th colspan="9"><i class="glyphicon glyphicon-user"></i> You ({{comparison.compare_to_athlete.firstname}})</th>
-                </tr>
-                <tr>
-                    <th class="sortable" ng-class="{
-                        'sort-asc': tableParams.isSortBy('effort.distance', 'asc'),
-                        'sort-desc': tableParams.isSortBy('effort.distance', 'desc')
-                      }"
-                        ng-click="tableParams.sorting({'effort.distance' : tableParams.isSortBy('effort.distance', 'asc') ? 'desc' : 'asc'})" colspan="2">Distance</th>
-                    <th class="sortable" ng-class="{
-                        'sort-asc': tableParams.isSortBy('segment.average_grade', 'asc'),
-                        'sort-desc': tableParams.isSortBy('segment.average_grade', 'desc')
-                      }"
-                        ng-click="tableParams.sorting({'segment.average_grade' : tableParams.isSortBy('segment.average_grade', 'asc') ? 'desc' : 'asc'})">Average<br/>Grade</th>
-                    <th class="sortable" ng-class="{
-                        'sort-asc': tableParams.isSortBy('effort.average_watts', 'asc'),
-                        'sort-desc': tableParams.isSortBy('effort.average_watts', 'desc')
-                      }"
-                        ng-click="tableParams.sorting({'effort.average_watts' : tableParams.isSortBy('effort.average_watts', 'asc') ? 'desc' : 'asc'})" colspan="2"><i class="glyphicon glyphicon-flash"></i> Avg Watts</th>
-                    <th class="sortable" ng-class="{
-                        'sort-asc': tableParams.isSortBy('effort.average_heartrate', 'asc'),
-                        'sort-desc': tableParams.isSortBy('effort.average_heartrate', 'desc')
-                      }"
-                        ng-click="tableParams.sorting({'effort.average_heartrate' : tableParams.isSortBy('effort.average_heartrate', 'asc') ? 'desc' : 'asc'})" colspan="2"><i class="glyphicon glyphicon-heart-empty"></i> Avg Heartrate</th>
-                    <th class="sortable" ng-class="{
-                        'sort-asc': tableParams.isSortBy('effort.moving_time', 'asc'),
-                        'sort-desc': tableParams.isSortBy('effort.moving_time', 'desc')
-                      }"
-                        ng-click="tableParams.sorting({'effort.moving_time' : tableParams.isSortBy('effort.moving_time', 'asc') ? 'desc' : 'asc'})" colspan="2"><i class="glyphicon glyphicon-time"></i> Total Time</th>
-                    <th class="sortable" ng-class="{
-                        'sort-asc': tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'asc'),
-                        'sort-desc': tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'desc')
-                      }"
-                        ng-click="tableParams.sorting({'compared_to_effort.moving_time - effort.moving_time' : tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'asc') ? 'desc' : 'asc'})">Time<br/>Difference</th>
-                    <th class="sortable" ng-class="{
-                        'sort-asc': tableParams.isSortBy('per_diff', 'asc'),
-                        'sort-desc': tableParams.isSortBy('per_diff', 'desc')
-                      }"
-                        ng-click="tableParams.sorting({'per_diff' : tableParams.isSortBy('per_diff', 'asc') ? 'desc' : 'asc'})">% Difference</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr ng-repeat="c in $data">
-                    <td><a target="_blank" href="http://www.strava.com/segments/{{c.segment.id}}">{{c.segment.name}}</a></td>
-                    <td>{{c.effort.distance | feet:measurement_preference}}</td>
-                    <td>({{c.compared_to_effort.distance | feet:measurement_preference}})</td>
-                    <td>{{c.segment.average_grade}}</td>
-                    <td>{{c.effort.average_watts}}</td>
-                    <td>({{c.compared_to_effort.average_watts}})</td>
-                    <td>{{c.effort.average_heartrate}}</td>
-                    <td ng-if="c.compared_to_effort.average_heartrate > 0">({{c.compared_to_effort.average_heartrate}})</td>
-                    <td ng-if="c.compared_to_effort.average_heartrate == undefined">-</td>
+    <tabset>
+        <tab heading="Detailed Data">
+            <div loading-container="tableParams.settings().$loading">
+                {{$loading}}
+                <table ng-table="tableParams" class="table">
+                    <thead>
+                    <tr>
+                        <th class="sortable" ng-class="{
+                            'sort-asc': tableParams.isSortBy('segment.name', 'asc'),
+                            'sort-desc': tableParams.isSortBy('segment.name', 'desc')
+                          }"
+                            ng-click="tableParams.sorting({'segment.name' : tableParams.isSortBy('segment.name', 'asc') ? 'desc' : 'asc'})" rowspan="2">Segment</th>
+                        <th colspan="9"><i class="glyphicon glyphicon-user"></i> You ({{comparison.compare_to_athlete.firstname}})</th>
+                    </tr>
+                    <tr>
+                        <th class="sortable" ng-class="{
+                            'sort-asc': tableParams.isSortBy('effort.distance', 'asc'),
+                            'sort-desc': tableParams.isSortBy('effort.distance', 'desc')
+                          }"
+                            ng-click="tableParams.sorting({'effort.distance' : tableParams.isSortBy('effort.distance', 'asc') ? 'desc' : 'asc'})" colspan="2">Distance</th>
+                        <th class="sortable" ng-class="{
+                            'sort-asc': tableParams.isSortBy('segment.average_grade', 'asc'),
+                            'sort-desc': tableParams.isSortBy('segment.average_grade', 'desc')
+                          }"
+                            ng-click="tableParams.sorting({'segment.average_grade' : tableParams.isSortBy('segment.average_grade', 'asc') ? 'desc' : 'asc'})">Average<br/>Grade</th>
+                        <th class="sortable" ng-class="{
+                            'sort-asc': tableParams.isSortBy('effort.average_watts', 'asc'),
+                            'sort-desc': tableParams.isSortBy('effort.average_watts', 'desc')
+                          }"
+                            ng-click="tableParams.sorting({'effort.average_watts' : tableParams.isSortBy('effort.average_watts', 'asc') ? 'desc' : 'asc'})" colspan="2"><i class="glyphicon glyphicon-flash"></i> Avg Watts</th>
+                        <th class="sortable" ng-class="{
+                            'sort-asc': tableParams.isSortBy('effort.average_heartrate', 'asc'),
+                            'sort-desc': tableParams.isSortBy('effort.average_heartrate', 'desc')
+                          }"
+                            ng-click="tableParams.sorting({'effort.average_heartrate' : tableParams.isSortBy('effort.average_heartrate', 'asc') ? 'desc' : 'asc'})" colspan="2"><i class="glyphicon glyphicon-heart-empty"></i> Avg Heartrate</th>
+                        <th class="sortable" ng-class="{
+                            'sort-asc': tableParams.isSortBy('effort.moving_time', 'asc'),
+                            'sort-desc': tableParams.isSortBy('effort.moving_time', 'desc')
+                          }"
+                            ng-click="tableParams.sorting({'effort.moving_time' : tableParams.isSortBy('effort.moving_time', 'asc') ? 'desc' : 'asc'})" colspan="2"><i class="glyphicon glyphicon-time"></i> Total Time</th>
+                        <th class="sortable" ng-class="{
+                            'sort-asc': tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'asc'),
+                            'sort-desc': tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'desc')
+                          }"
+                            ng-click="tableParams.sorting({'compared_to_effort.moving_time - effort.moving_time' : tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'asc') ? 'desc' : 'asc'})">Time<br/>Difference</th>
+                        <th class="sortable" ng-class="{
+                            'sort-asc': tableParams.isSortBy('per_diff', 'asc'),
+                            'sort-desc': tableParams.isSortBy('per_diff', 'desc')
+                          }"
+                            ng-click="tableParams.sorting({'per_diff' : tableParams.isSortBy('per_diff', 'asc') ? 'desc' : 'asc'})">% Difference</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="c in $data">
+                        <td><a target="_blank" href="http://www.strava.com/segments/{{c.segment.id}}">{{c.segment.name}}</a></td>
+                        <td>{{c.effort.distance | feet:measurement_preference}}</td>
+                        <td>({{c.compared_to_effort.distance | feet:measurement_preference}})</td>
+                        <td>{{c.segment.average_grade}}</td>
+                        <td>{{c.effort.average_watts}}</td>
+                        <td>({{c.compared_to_effort.average_watts}})</td>
+                        <td>{{c.effort.average_heartrate}}</td>
+                        <td ng-if="c.compared_to_effort.average_heartrate > 0">({{c.compared_to_effort.average_heartrate}})</td>
+                        <td ng-if="c.compared_to_effort.average_heartrate == undefined">-</td>
 
-                    <td>{{c.effort.moving_time | seconds}}</td>
-                    <td>({{c.compared_to_effort.moving_time | seconds}})</td>
-                    <td style="text-align: right;"><span style="white-space: nowrap;" ng-class="{'red' : (c.compared_to_effort.moving_time - c.effort.moving_time) < 0}">{{c.compared_to_effort.moving_time - c.effort.moving_time | secondstotime}}</span></td>
-                    <td><span ng-class="{'red':c.per_diff<0}">{{c.per_diff*100 | number:2}}</span></td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </tab>
-    <tab heading="Distance Scatter Plot">
-        <div ng-if="!hovername">&nbsp;</div>
-        <div ng-if="hovername" style="width: 100%; text-align: center;">{{hovername}}&nbsp;&nbsp;<span ng-class="{'red':hoverdiff<0}">{{hoverdiff*100 | number:2}}% Difference</span></div>
-        <nvd3-scatter-chart
-            data="distanceScatter"
-            id="disanceScatterPlot"
-            width="500"
-            height="250"
-            showLegend="false"
-            interactive="true"
-            color="scolorFunction()"
-            xaxislabel="Segment Distance" yaxislabel="Time Difference (Seconds)" yAxisTickFormat="yAxisTickFormatFunction()" xAxisTickFormat="xAxisTickFormatFunction()">
-            <svg></svg>
-        </nvd3-scatter-chart>
-    </tab>
-    <tab heading="Climb Scatter Plot">
-        <div ng-if="!hovername">&nbsp;</div>
-        <div ng-if="hovername" style="width: 100%; text-align: center;">{{hovername}}&nbsp;&nbsp;<span ng-class="{'red':hoverdiff<0}">{{hoverdiff*100 | number:2}}% Difference</span></div>
-        <nvd3-scatter-chart
-                data="climbScatter"
-                id="climbScatterPlot"
-                width="550"
+                        <td>{{c.effort.moving_time | seconds}}</td>
+                        <td>({{c.compared_to_effort.moving_time | seconds}})</td>
+                        <td style="text-align: right;"><span style="white-space: nowrap;" ng-class="{'red' : (c.compared_to_effort.moving_time - c.effort.moving_time) < 0}">{{c.compared_to_effort.moving_time - c.effort.moving_time | secondstotime}}</span></td>
+                        <td><span ng-class="{'red':c.per_diff<0}">{{c.per_diff*100 | number:2}}</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </tab>
+        <tab heading="Distance Scatter Plot">
+            <div ng-if="!hovername">&nbsp;</div>
+            <div ng-if="hovername" style="width: 100%; text-align: center;">{{hovername}}&nbsp;&nbsp;<span ng-class="{'red':hoverdiff<0}">{{hoverdiff*100 | number:2}}% Difference</span></div>
+            <nvd3-scatter-chart
+                data="distanceScatter"
+                id="disanceScatterPlot"
+                width="500"
                 height="250"
                 showLegend="false"
                 interactive="true"
                 color="scolorFunction()"
-                xaxislabel="Segment Average Grade" yaxislabel="Time Difference (Seconds)" yAxisTickFormat="yAxisTickFormatFunction()" xAxisTickFormat="xAxisTickFormatGradeFunction()">
-            <svg></svg>
-        </nvd3-scatter-chart>
-    </tab>
+                xaxislabel="Segment Distance" yaxislabel="Time Difference (Seconds)" yAxisTickFormat="yAxisTickFormatFunction()" xAxisTickFormat="xAxisTickFormatFunction()">
+                <svg></svg>
+            </nvd3-scatter-chart>
+        </tab>
+        <tab heading="Climb Scatter Plot">
+            <div ng-if="!hovername">&nbsp;</div>
+            <div ng-if="hovername" style="width: 100%; text-align: center;">{{hovername}}&nbsp;&nbsp;<span ng-class="{'red':hoverdiff<0}">{{hoverdiff*100 | number:2}}% Difference</span></div>
+            <nvd3-scatter-chart
+                    data="climbScatter"
+                    id="climbScatterPlot"
+                    width="550"
+                    height="250"
+                    showLegend="false"
+                    interactive="true"
+                    color="scolorFunction()"
+                    xaxislabel="Segment Average Grade" yaxislabel="Time Difference (Seconds)" yAxisTickFormat="yAxisTickFormatFunction()" xAxisTickFormat="xAxisTickFormatGradeFunction()">
+                <svg></svg>
+            </nvd3-scatter-chart>
+        </tab>
 
-</tabset>
+    </tabset>
+</div>

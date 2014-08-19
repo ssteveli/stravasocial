@@ -241,6 +241,10 @@ appControllers.controller('NewComparisonController', ['$scope', '$http', '$resou
 
 appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$routeParams', '$timeout', '$location', '$filter', 'ngTableParams',
     function ($scope, $http, $routeParams, $timeout, $location, $filter, ngTableParams) {
+        $scope.loading = true;
+        $scope.notfound = false;
+        $scope.found = true;
+
         $scope.comparison = {};
         $scope.location = $location;
 
@@ -366,6 +370,15 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                     if (data.state == 'Running') {
                         $timeout(retrieveComparisons, 1000)
                     }
+
+                    $scope.found = true;
+                    $scope.notfound = false;
+                    $scope.loading = false;
+                }).error(function (error) {
+                    console.log('error loading comparison: ' + JSON.stringify(error));
+                    $scope.found = false;
+                    $scope.notfound = true;
+                    $scope.loading = false;
                 });
         }
 
