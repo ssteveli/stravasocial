@@ -15,8 +15,12 @@ import datetime
 import urllib
 from datetime import date, timedelta
 
+from model import Athlete
+
 import logging
 import logging.handlers
+
+from flask_jwt import JWT, jwt_required, current_user
 
 log = logging.getLogger("stravacompare")
 log.setLevel(logging.DEBUG)
@@ -29,6 +33,15 @@ file.setFormatter(formatter)
 log.addHandler(file)
 
 app = Flask(__name__)
+app.debug = bool(pyconfig.get('api.debug', 'True'))
+app.config['SECRET_KEY'] = pyconfig.get('api.secret_key', 'xxx')
+app.config['JWT_EXPIRATION_DELTA'] = timedelta(days=31)
+
+if app.config['SECRET_KEY'] == 'xxx':
+    log.warn("api.secret_key value is the default development value, please set it to something else")
+
+jwt = JWT(app)
+
 idgen = IdGenerator()
 
 class Container():
@@ -51,6 +64,8 @@ class Container():
 
 con = Container()
 
+### setup is done, below is the api implementation
+
 @app.errorhandler(401)
 def unauthorized(error):
     return make_response(jsonify({'error': 'unauthorized', 'message': error.description}), 401)
@@ -67,10 +82,67 @@ def invalid_request(error):
 def forbidden(error):
     return make_response(jsonify({'error': 'forbidden', 'message': error.description}), 403)
 
+@jwt.authentication_handler
+def authenticate(username, password):
+    auth = con.authorizations.find_one({'id': username})
+
+    if auth is None:
+        abort(400, 'invalid credentials')
+
+    try:
+        token = get_stravadao().exchange_code_for_token(password)
+    except:
+        log.exception("error received from strava trying to exchange a code for an access_token")
+        abort(400, 'invalid credentials, unable to get token from strava')
+
+    athlete = get_stravadao().set_access_token_and_get_athlete(token)
+
+    auth['code'] = password
+    auth['access_token'] = token
+    auth['lastModifiedTs'] = datetime.datetime.utcnow()
+    auth['athlete_id'] = athlete.id
+
+    con.authorizations.save(auth)
+
+    sd = Strava(auth['access_token'])
+    requested_athlete = sd.get_athlete(auth['athlete_id'])
+
+    return Athlete(
+        id=username,
+        athlete_id=requested_athlete.id,
+        firstname=requested_athlete.firstname,
+        lastname=requested_athlete.lastname,
+        measure_preference=requested_athlete.measurement_preference,
+        profile=requested_athlete.profile
+    )
+
+@jwt.user_handler
+def load_athlete(payload):
+    auth = con.authorizations.find_one({'id': payload['user_id']})
+
+    if auth is None:
+        abort(400, 'invalid credentials')
+
+    if 'access_token' not in auth:
+        abort(400, 'invalid credentials, no access token available')
+
+    sd = Strava(auth['access_token'])
+    requested_athlete = sd.get_athlete(auth['athlete_id'])
+
+    return Athlete(
+        id=payload['user_id'],
+        athlete_id=requested_athlete.id,
+        firstname=requested_athlete.firstname,
+        lastname=requested_athlete.lastname,
+        measure_preference=requested_athlete.measurement_preference,
+        profile=requested_athlete.profile,
+        access_token=auth['access_token']
+    )
+
 @app.route('/api/strava/comparisons', methods=['POST'])
-def launchComparison():
+@jwt_required()
+def launch_comparison():
     req = request.get_json()
-    athlete = validateSessionAndGetAthlete()
 
     if not con.ff.isOn('comparisons', default=True):
         abort(403, 'comparisons are currently turned off')
@@ -87,13 +159,13 @@ def launchComparison():
     if 'days' not in req and len(req['activity_ids']) == 0:
         abort(403, 'no activity ids or days parameter specified')
 
-    if athlete['athlete_id'] == req['compare_to_athlete_id']:
+    if current_user.athlete_id == req['compare_to_athlete_id']:
         abort(403, 'you want to compare against yourself?')
 
-    if is_comparison_allowed(athlete):
+    if is_comparison_allowed(current_user.athlete_id):
         # create our db record
         c = {
-            'athlete_id': athlete['athlete_id'],
+            'athlete_id': current_user.athlete_id,
             'submitted_ts': int(time.time()),
             'state': 'Submitted',
             'compare_to_athlete_id': req['compare_to_athlete_id'],
@@ -110,9 +182,9 @@ def launchComparison():
 
         # now it's time to launch the gearman background job
         job_details = {
-            'athlete_id': athlete['athlete_id'],
+            'athlete_id': current_user.athlete_id,
             'compare_to_athlete_id': req['compare_to_athlete_id'],
-            'access_token': athlete['access_token'],
+            'access_token': current_user.access_token,
             'id': str(_id),
             'submitted_ts': int(time.time()),
             'state': 'Submitted'
@@ -138,13 +210,13 @@ def launchComparison():
         abort(403, 'no comparison is allowed at this time')
 
 @app.route('/api/strava/comparisons')
-def getComparisonsBySession():
-    athlete = validateSessionAndGetAthlete()
-
+@jwt_required()
+def get_comparisons():
+    print 'getting comparisons: %s' % json.dumps(current_user)
     result = []
 
     is_admin = is_role('admin')
-    q = {'athlete_id': athlete['athlete_id']} if not is_admin else {}
+    q = {'athlete_id': current_user.athlete_id} if not is_admin else {}
     results = con.comparisons.find(q)
 
     # commented out because I get mongo to deal with an empty or missing comparisons array correctly
@@ -194,13 +266,13 @@ def getComparisonsBySession():
         })
 
 @app.route('/api/strava/comparisons/<comparison_id>', methods=['DELETE'])
-def deleteComparison(comparison_id):
-    athlete = validateSessionAndGetAthlete()
+@jwt_required()
+def delete_comparison(comparison_id):
     try:
         _id = ObjectId(str(comparison_id))
         comparison = con.comparisons.find_one({'_id': ObjectId(str(comparison_id))})
 
-        if comparison is None or (athlete['athlete_id'] != comparison['athlete_id'] and not is_role('admin')):
+        if comparison is None or (current_user.athlete_id != comparison['athlete_id'] and not is_role('admin')):
             abort(404, 'the specified comparison id was not found')
 
         con.comparisons.remove({'_id': ObjectId(str(comparison_id))})
@@ -210,9 +282,8 @@ def deleteComparison(comparison_id):
         abort(400, 'invalid comparison id')
 
 @app.route('/api/strava/comparisons/<comparisonid>')
-def getComparisonBySession(comparisonid):
-    athlete = validateSessionAndGetAthlete()
-
+@jwt_required()
+def get_comparison_by_id(comparisonid):
     if comparisonid == 'undefined':
         abort(404, 'comparisonid of {} was not found'.format(comparisonid))
 
@@ -223,7 +294,7 @@ def getComparisonBySession(comparisonid):
         abort(404, 'the specified comparison id {} was not found'.format(comparisonid))
 
     # if this isn't a public comparisons, then this athlete must be the originator
-    if athlete['athlete_id'] != comparison['athlete_id'] and not is_role('admin'):
+    if current_user.athlete_id != comparison['athlete_id'] and not is_role('admin'):
         abort(404, 'the specified comparison id {} was not found'.format(comparisonid))
 
     comparison['compare_to_athlete'] = get_athlete_dict(comparison['compare_to_athlete_id'])
@@ -241,12 +312,16 @@ def getComparisonBySession(comparisonid):
         })
 
 @app.route('/api/strava/athlete')
-def getAthleteBySession():
-    athlete = validateSessionAndGetAthlete()
-    return getAthlete(athlete['athlete_id'])
+@jwt_required()
+def get_current_athlete():
+    athlete = current_user
+    athlete.access_token = None
+
+    return Response(json.dumps(athlete), mimetype="application/json", headers={'cache-control': 'max-age=30'})
 
 @app.route('/api/strava/athletes/<id>')
-def getAthlete(id):
+@jwt_required()
+def get_athlete(id):
     requested_athlete = get_athlete_dict(id)
 
     if requested_athlete is None:
@@ -259,13 +334,13 @@ def getAthlete(id):
         })
 
 @app.route('/api/strava/athletes/<id>/clearcache', methods=['POST'])
-def clear_athlete_cache(id):
-    get_stravadao().invalidate_cached_athlete(id)
+@jwt_required()
+def clear_athlete_cache(athlete_id):
+    get_stravadao().invalidate_cached_athlete(athlete_id)
     return Response(dumps({'result': True}), mimetype="application/json")
 
-
-def get_athlete_dict(id):
-    requested_athlete = get_stravadao().get_athlete(id)
+def get_athlete_dict(athlete_id):
+    requested_athlete = get_stravadao().get_athlete(athlete_id)
 
     if requested_athlete is None:
         return None
@@ -279,10 +354,9 @@ def get_athlete_dict(id):
         }
 
 @app.route('/api/strava/athlete/plan')
-def getAthletePlan():
-    current_athlete = validateSessionAndGetAthlete()
-
-    p = Plan(current_athlete)
+@jwt_required()
+def get_athlete_plan():
+    p = Plan(current_user.athlete_id)
     return Response(dumps(p.get_plan()),
         mimetype='application/json',
         headers={
@@ -290,10 +364,9 @@ def getAthletePlan():
         })
 
 @app.route('/api/strava/activities')
+@jwt_required()
 def get_activities():
-    athlete = validateSessionAndGetAthlete()
-
-    activities = get_stravadao().get_activities(athlete['athlete_id'], date.today()-timedelta(days=360))
+    activities = get_stravadao().get_activities(current_user.athlete_id, date.today()-timedelta(days=360))
 
     results = []
     for a in activities:
@@ -313,7 +386,7 @@ def get_activities():
         })
 
 @app.route('/api/strava/authorization')
-def createAuthorization():
+def create_strava_authorization():
         id = idgen.getId()
         redirect_url = request.args.get('redirect_uri')
 
@@ -342,55 +415,19 @@ def createAuthorization():
             'createdTs': str(auth['createdTs'])
         }), mimetype='application/json')
 
-@app.route('/api/strava/authorizations/<id>', methods=['PUT'])
-def updateAuthentication(id):
-    req_json = request.get_json()
-
-    auth = con.authorizations.find_one({'id': id})
-
-    if auth is None:
-        abort(404, 'authorization {} not found'.format(id))
-
-    if 'code' not in req_json:
-        abort(403, 'field code is missing from the request json body')
-
-    token = get_stravadao().exchange_code_for_token(req_json['code'])
-    athlete = get_stravadao().set_access_token_and_get_athlete(token)
-
-    auth['access_token'] = token
-    auth['lastModifiedTs'] = datetime.datetime.utcnow()
-    auth['athlete_id'] = athlete.id
-
-    con.authorizations.save(auth)
-
-    return Response(dumps({
-        'id': auth['id'],
-        'url': auth['url'],
-        'createdTs': str(auth['createdTs']),
-        'lastModifiedTs': str(auth['lastModifiedTs']),
-        'code': req_json['code']
-    }), mimetype="application/json")
-
 @app.route('/api/strava/authorizations/session', methods=['DELETE'])
-def deleteAuthentication():
-    session_id = request.cookies.get('stravaSocialSessionId')
+@jwt_required()
+def delete_strava_authorization():
+    authorization = con.authorizations.find_one({'id': current_user.id})
 
-    if session_id is not None:
-        authorization = con.authorizations.find_one({'id': session_id})
+    if authorization is not None:
+        get_stravadao().invalidate_cached_athlete(current_user.id)
+        con.authorizations.remove({'id': current_user.id})
 
-        if authorization is not None:
-            get_stravadao().invalidate_cached_athlete(authorization['athlete_id'])
-            con.authorizations.remove({'id': session_id})
-
-    return Response(dumps({'result': True}), mimetype="application/json")
-
-@app.route('/api/strava/authorizations/<id>/isvalid')
-def validSession(id):
-    validateSessionAndGetAthlete()
     return Response(dumps({'result': True}), mimetype="application/json")
 
 @app.route('/api/admin/stats')
-def getStats():
+def get_stats():
     stats = {
         'comparisons': con.db.comparisons.count(),
         'athletes': con.db.athletes.count(),
@@ -404,57 +441,6 @@ def getStats():
         headers={
             'cache-control': 'no-cache'
         })
-
-def validateSession():
-    session_id = request.cookies.get('stravaSocialSessionId')
-
-    if session_id is None:
-        return False
-
-    authorization = con.authorizations.find_one({'id': session_id})
-
-    if authorization is None:
-        return False
-
-    if 'access_token' not in authorization:
-        return False
-
-    if 'athlete_id' not in authorization:
-        return False
-
-    athlete = get_stravadao().get_athlete(authorization['athlete_id'])
-
-    if athlete is None:
-        return False
-
-    return True
-
-def validateSessionAndGetAthlete():
-    session_id = request.cookies.get('stravaSocialSessionId')
-
-    if session_id is None:
-        abort(401, 'no authorization information received')
-
-    authorization = con.authorizations.find_one({'id': session_id})
-
-    if authorization is None:
-        abort(401, 'missing authorization received')
-
-    if 'access_token' not in authorization:
-        abort(403, 'authorization session is not complete, missing access token from Strava API')
-
-    if 'athlete_id' not in authorization:
-        abort(403, 'authorization session is not complete, missing athlete information')
-
-    athlete = get_stravadao().get_athlete(authorization['athlete_id'])
-
-    if athlete is None:
-        abort(404, 'athlete not found')
-
-    return {
-        'athlete_id': authorization['athlete_id'],
-        'access_token': authorization['access_token']
-    }
 
 @app.route('/api/admin/featureFlags')
 def get_feature_flags():
@@ -479,8 +465,8 @@ def get_gearman_status():
     ac = admin_client.GearmanAdminClient(con.gearman_connections)
     return Response(dumps(ac.get_status()), mimetype='application/json')
 
-def is_comparison_allowed(athlete):
-    p = Plan(athlete).get_plan()
+def is_comparison_allowed(athlete_id):
+    p = Plan(athlete_id).get_plan()
     if 'is_execution_allowed' not in p:
         return False
     else:
@@ -490,35 +476,14 @@ def is_role(role):
     if role is None:
         return False
 
-    session_id = request.cookies.get('stravaSocialSessionId')
-
-    if session_id is None:
-        return False
-
-    authorization = con.authorizations.find_one({'id': session_id})
-
-    if authorization is None or 'athlete_id' not in authorization:
-        return False
-
-    i = con.roles.find({'role': role, 'athletes': authorization['athlete_id']}).count()
+    i = con.roles.find({'role': role, 'athletes': current_user.athlete_id}).count()
     return i > 0
 
 def get_stravadao():
-    token = None
+    if current_user is not None and current_user.access_token is not None:
+        return Strava(current_user.access_token)
 
-    auth_header = request.headers.get('Authorization')
-    if auth_header is not None:
-        token = auth_header.rsplit(' ', 1)[1]
-    else:
-        session_id = request.cookies.get('stravaSocialSessionId')
-
-        if session_id is not None:
-            authorization = con.authorizations.find_one({'id': session_id})
-
-            if authorization is not None and 'access_token' in authorization:
-                token = authorization['access_token']
-
-    return Strava(token)
+    abort(403, 'no access token available for strava')
 
 if __name__ == '__main__':
-    app.run(host = '0.0.0.0', debug = True)
+    app.run(host = '0.0.0.0')

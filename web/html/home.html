@@ -1,7 +1,6 @@
+<a ng-hide="isAuthenticated" ng-click="sendToStrava()"><img src="assets/ConnectWithStrava.png" alt="Connect with Strava"/></a>
 
-<a ng-hide="athlete" ng-click="sendToStrava()"><img src="assets/ConnectWithStrava.png" alt="Connect with Strava"/></a>
-
-<div ng-show="athlete">
+<div ng-show="isAuthenticated">
     <div class="container" style="margin-top: 25px;">
         <div class="row">
             <div class="col-lg-2">

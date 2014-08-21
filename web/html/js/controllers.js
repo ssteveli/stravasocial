@@ -3,28 +3,16 @@ var appControllers = angular.module('appControllers', ['ipCookie']);
 
 var mp = undefined;
 
-appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 'ipCookie', '$window',
-	function($scope, $routeParams, $http, ipCookie, $window) {
-        $scope.athlete = null;
-
-        $http.get('/api/strava/athlete').
-            success(function(data) {
-                $scope.athlete = data;
-
-                if (mp == undefined) {
-                    mp = data.measurement_preference;
-                    $scope.measurement_preference = mp;
-                } else {
-                    $scope.measurement_preference = mp;
-                }
-
-                if ($window.ga)
-                    $window.ga('set', '&uid', data.id);
-
-            }).error(function(error) {
-                console.log('athlete resource error: ' + error);
-                $scope.athlete = null;
-            });
+appControllers.controller('MainController', ['$scope', '$routeParams', '$http', '$location', 'AuthenticationService',
+	function($scope, $routeParams, $http, $location, AuthenticationService) {
+        if (AuthenticationService.isLogged) {
+            $scope.isAuthenticated = true;
+            $http.get('/api/strava/athlete')
+                .success(function(data) {
+                    $scope.athlete = data;
+                });
+        } else
+            $scope.isAuthenticated = false;
 
 		$scope.sendToStrava = function() {
 			return_url = window.location.protocol + 
@@ -34,31 +22,38 @@ appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 
 		
 			$http.get('/api/strava/authorization?redirect_uri=' + return_url).
 				success(function(data) {
-					window.location.href = data.url;
+                    window.location.href = data.url;
 				});
 		};
 		
 		$scope.disconnect = function disconnect() {
 			$http.delete('/api/strava/authorizations/session').
 				success(function(data) {
-					$scope.athlete = null;
-					ipCookie.remove('stravaSocialSessionId');
+                    AuthenticationService.logout();
+                    $scope.isAuthenticated = false;
 				});
-		};	
+		};
 	}
 ]);
 
-appControllers.controller('StravaReturnController', ['$scope', '$location', '$http', 'ipCookie',
-    function($scope, $location, $http, ipCookie) {
+appControllers.controller('StravaReturnController', ['$window', '$scope', '$location', '$http',
+    function($window, $scope, $location, $http) {
         $scope.code = $location.search()['code'];
         $scope.state = $location.search()['state'];
         $scope.error = $location.search()['error'];
 
         if (!$scope.error) {
-            $http.put('/api/strava/authorizations/' + $scope.state, {'code':$scope.code})
-                .success(function(data) {
-                    ipCookie('stravaSocialSessionId', $scope.state, {expires:31, path: '/'});
-                    window.location.href = '/';
+            $scope.payload = {'username': $scope.state, 'password': $scope.code};
+
+            $http.post('/auth', $scope.payload)
+                .success(function (data, status, headers, config) {
+                    $window.sessionStorage.token = data.token;
+                    $location.path('/home');
+                })
+                .error(function (data, status, headers, config) {
+                    console.log('error from auth' + JSON.stringify(data));
+                    delete $window.sessionStorage.token;
+                    $scope.error = data;
                 });
         }
     }

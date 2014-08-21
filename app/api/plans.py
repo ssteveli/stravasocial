@@ -9,8 +9,8 @@ import pyconfig
 
 class Plan():
 
-    def __init__(self, athlete):
-        self.athlete = athlete
+    def __init__(self, athlete_id):
+        self.athlete_id = athlete_id
         self.ff = FeatureFlags()
         self.reload()
 
@@ -22,11 +22,7 @@ class Plan():
         self.comparisons = self.db.comparisons
 
     def get_plan(self):
-        athlete_plan = 'default'
-        if 'plan' in self.athlete:
-            athlete_plan = self.athlete['plan']
-
-        dbplan = self.plans.find_one({'_id': athlete_plan})
+        dbplan = self.plans.find_one({'athlete_ids': self.athlete_id})
         if dbplan is None:
             dbplan = {
                 "_id": "default",
@@ -45,7 +41,7 @@ class Plan():
             is_execution_allowed= True
         else:
             # get the last comparison this athlete ran
-            cur = self.comparisons.find({"athlete_id": self.athlete['athlete_id']}).sort("started_ts", DESCENDING).limit(1)
+            cur = self.comparisons.find({"athlete_id": self.athlete_id}).sort("started_ts", DESCENDING).limit(1)
 
             if cur is None or cur.count() == 0:
                 is_execution_allowed = True
