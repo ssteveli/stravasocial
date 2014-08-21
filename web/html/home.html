@@ -1,20 +1,28 @@
-<a ng-hide="isAuthenticated" ng-click="sendToStrava()"><img src="assets/ConnectWithStrava.png" alt="Connect with Strava"/></a>
+<div ng-if="apiUnavailable">
+    <p ng-if="apiUnavailable">
+        Well this is really embarrassing, the stravacompare API doesn't seem to be available.  Our room of operation monkeys has been notified,
+        please come back later and try again.
+    </p>
+</div>
+<div ng-if="!apiUnavailable">
+    <a ng-hide="isAuthenticated" ng-click="sendToStrava()"><img src="assets/ConnectWithStrava.png" alt="Connect with Strava"/></a>
 
-<div ng-show="isAuthenticated">
-    <div class="container" style="margin-top: 25px;">
-        <div class="row">
-            <div class="col-lg-2">
-                <img ng-src="{{athlete.profile}}" onerror="handleMissingImage(this);"/>
+    <div ng-show="isAuthenticated">
+        <div class="container" style="margin-top: 25px;">
+            <div class="row">
+                <div class="col-lg-2">
+                    <img ng-src="{{athlete.profile}}" onerror="handleMissingImage(this);"/>
+                </div>
+                <div class="col-lg-6">
+                    <p class="lead">Welcome {{athlete.firstname}}, visit <a href="/comparisons">comparisons</a> to get started</p>
+                </div>
             </div>
-            <div class="col-lg-6">
-                <p class="lead">Welcome {{athlete.firstname}}, visit <a href="/comparisons">comparisons</a> to get started</p>
-            </div>
-        </div>
-        <div class="row" style="margin-top: 20px;">
-            <div class="col-lg-6" style="margin-right: 20px;">
-                <button type="button" class="btn btn-custom" ng-click="disconnect()()">Disconnect from Strava</button>
-                <br/>
-                <small><i>Your comparison data will not be lost, you'll just need to re-authorize.</i></small>
+            <div class="row" style="margin-top: 20px;">
+                <div class="col-lg-6" style="margin-right: 20px;">
+                    <button type="button" class="btn btn-custom" ng-click="disconnect()()">Disconnect from Strava</button>
+                    <br/>
+                    <small><i>Your comparison data will not be lost, you'll just need to re-authorize.</i></small>
+                </div>
             </div>
         </div>
     </div>

@@ -5,11 +5,17 @@ var mp = undefined;
 
 appControllers.controller('MainController', ['$scope', '$routeParams', '$http', '$location', 'AuthenticationService',
 	function($scope, $routeParams, $http, $location, AuthenticationService) {
+        $scope.apiUnavailable = false;
+
         if (AuthenticationService.isLogged) {
             $scope.isAuthenticated = true;
             $http.get('/api/strava/athlete')
                 .success(function(data) {
                     $scope.athlete = data;
+                })
+                .error(function (error) {
+                    $scope.isAuthenticated = false;
+                    $scope.apiUnavailable = true;
                 });
         } else
             $scope.isAuthenticated = false;
@@ -20,10 +26,14 @@ appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 
 				window.location.hostname + 
 				'/stravareturn';
 		
-			$http.get('/api/strava/authorization?redirect_uri=' + return_url).
-				success(function(data) {
+			$http.get('/api/strava/authorization?redirect_uri=' + return_url)
+                .success(function(data) {
                     window.location.href = data.url;
-				});
+				})
+                .error(function (data) {
+                    $scope.isAuthenticated = false;
+                    $scope.apiUnavailable = true;
+                });
 		};
 		
 		$scope.disconnect = function disconnect() {

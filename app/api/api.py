@@ -480,10 +480,10 @@ def is_role(role):
     return i > 0
 
 def get_stravadao():
-    if current_user is not None and current_user.access_token is not None:
+    if current_user is not None and hasattr(current_user, 'access_token'):
         return Strava(current_user.access_token)
 
-    abort(403, 'no access token available for strava')
+    return Strava()
 
 if __name__ == '__main__':
     app.run(host = '0.0.0.0')
