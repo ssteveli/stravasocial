@@ -3,45 +3,59 @@ var appControllers = angular.module('appControllers', ['ipCookie']);
 
 var mp = undefined;
 
-appControllers.controller('MainController', ['$scope', '$routeParams', '$http', '$location', 'AuthenticationService',
-	function($scope, $routeParams, $http, $location, AuthenticationService) {
-        $scope.apiUnavailable = false;
+appControllers.controller('MainController', ['$scope', '$routeParams', '$http', '$location', '$window', 'AuthenticationService', 'Error',
+	function($scope, $routeParams, $http, $location, $window, AuthenticationService, Error) {
+        $scope.ready = false;
 
         if (AuthenticationService.isLogged) {
             $scope.isAuthenticated = true;
             $http.get('/api/strava/athlete')
                 .success(function(data) {
+                    $scope.ready = true;
                     $scope.athlete = data;
                 })
-                .error(function (error) {
+                .error(function (error, status) {
+                    if (status >= 500) {
+                        Error.message = 'Well this is really embarrassing, the StravaCompare API doesn\'t seem to be available.  Our room of operation monkeys has been notified, please come back later and try again.';
+                        $location.path('/error');
+                    }
+
                     $scope.isAuthenticated = false;
                     $scope.apiUnavailable = true;
+                    $scope.ready = true;
                 });
-        } else
+        } else {
             $scope.isAuthenticated = false;
 
-		$scope.sendToStrava = function() {
-			return_url = window.location.protocol + 
-				'//' + 
-				window.location.hostname + 
-				'/stravareturn';
-		
-			$http.get('/api/strava/authorization?redirect_uri=' + return_url)
+            var return_url = window.location.protocol +
+                '//' +
+                window.location.hostname +
+                '/stravareturn';
+
+            $http.get('/api/strava/authorization?redirect_uri=' + return_url)
                 .success(function(data) {
-                    window.location.href = data.url;
-				})
+                    $scope.url = data.url;
+                    $scope.ready = true;
+                })
                 .error(function (data) {
-                    $scope.isAuthenticated = false;
-                    $scope.apiUnavailable = true;
+                    Error.message = 'Well this is really embarrassing, the StravaCompare API doesn\'t seem to be available.  Our room of operation monkeys has been notified, please come back later and try again.';
+                    $location.path('/error');
                 });
+        }
+
+		$scope.sendToStrava = function() {
+            $window.location.href = $scope.url;
 		};
 		
 		$scope.disconnect = function disconnect() {
-			$http.delete('/api/strava/authorizations/session').
-				success(function(data) {
+			$http.delete('/api/strava/authorizations/session')
+                .success(function(data) {
                     AuthenticationService.logout();
                     $scope.isAuthenticated = false;
-				});
+				})
+                .error(function (error) {
+                    console.log('error deleting authorization: ' + JSON.stringify(error));
+                });
 		};
 	}
 ]);
@@ -69,8 +83,8 @@ appControllers.controller('StravaReturnController', ['$window', '$scope', '$loca
     }
 ]);
 
-appControllers.controller('ComparisonController', ['$scope', '$http', '$routeParams', '$timeout', '$resource', '$filter', 'ngTableParams',
-    function ($scope, $http, $routeParams, $timeout, $resource, $filter, ngTableParams) {
+appControllers.controller('ComparisonController', ['$scope', '$http', '$routeParams', '$timeout', '$resource', '$filter', '$location', 'ngTableParams', 'Error',
+    function ($scope, $http, $routeParams, $timeout, $resource, $filter, $location, ngTableParams, Error) {
         $scope.loading = true;
 
         $scope.data = $resource('/api/strava/comparisons').query();
@@ -91,6 +105,10 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
                     $defer.resolve(orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count()));
                 }
             });
+        }, function (error) {
+            console.log('getting comparisons error: ' + JSON.stringify(error));
+            Error.message = 'I\'m so incredibly sorry, but there seems to be some type of problem finding your comparisons';
+            $location.path('/');
         });
 
         $scope.deleteComparison = function(id) {
@@ -129,8 +147,8 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
         };
     }]);
 
-appControllers.controller('NewComparisonController', ['$scope', '$http', '$resource', '$filter', 'ngTableParams',
-    function($scope, $http, $resource, $filter, ngTableParams) {
+appControllers.controller('NewComparisonController', ['$scope', '$http', '$resource', '$filter', '$location', 'ngTableParams', 'Error',
+    function($scope, $http, $resource, $filter, $location, ngTableParams, Error) {
         $http.get('/api/strava/athlete').
             success(function(data) {
                 $scope.athlete = data;
@@ -142,9 +160,16 @@ appControllers.controller('NewComparisonController', ['$scope', '$http', '$resou
                     $scope.measurement_preference = mp;
                 }
 
-            }).error(function(error) {
-                console.log('athlete resource error: ' + error);
-                $scope.athlete = null;
+            }).error(function(error, status) {
+                console.log('athlete resource error: ' + JSON.stringify(error));
+                console.log('status: ' + JSON.stringify(status));
+
+                if (status >= 500) {
+                    Error.message = 'Well this is horribly embarrassing, there seems to be some type of system failure trying to figure out who you are';
+                    $location.path('/error');
+                } else {
+                    $location.path('/');
+                }
             });
 
         $scope.days_ago = undefined;
@@ -384,6 +409,10 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                     $scope.found = false;
                     $scope.notfound = true;
                     $scope.loading = false;
+                })
+                .error(function (data, status) {
+                    console.log('data: ' + JSON.stringify(data));
+                    console.log('status: ' + JSON.stringify(status));
                 });
         }
 
@@ -418,6 +447,15 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
             };
         }
     }]);
+
+
+appControllers.controller('ErrorController', ['$scope', '$window', 'Error', function($scope, $window, Error) {
+    $scope.message = Error.message;
+
+    $scope.goback = function() {
+        $window.history.back();
+    }
+}]);
 
 function manageSession($scope, $http, ipCookie) {
     $scope.sessionId = ipCookie('stravaSocialSessionId');

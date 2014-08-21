@@ -1,10 +1,5 @@
-<div ng-if="apiUnavailable">
-    <p ng-if="apiUnavailable">
-        Well this is really embarrassing, the stravacompare API doesn't seem to be available.  Our room of operation monkeys has been notified,
-        please come back later and try again.
-    </p>
-</div>
-<div ng-if="!apiUnavailable">
+<span ng-if="!ready"><img src="/assets/loading.gif"/> Please wait we're scrambling some eggs here ... </span>
+<div ng-if="ready" ng-init="scope = { isConnectDisabled: true }">
     <a ng-hide="isAuthenticated" ng-click="sendToStrava()"><img src="assets/ConnectWithStrava.png" alt="Connect with Strava"/></a>
 
     <div ng-show="isAuthenticated">

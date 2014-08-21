@@ -31,6 +31,10 @@ app.factory('AuthenticationService', function($window) {
     return auth;
 });
 
+app.factory('Error', function() {
+    return {message:undefined}
+});
+
 app.factory('authInterceptor', function($rootScope, $q, $window) {
    return {
        request: function(config) {
@@ -83,6 +87,10 @@ app.config(['$routeProvider', '$locationProvider',
             when('/comparisons/:comparisonId', {
                 templateUrl: '/comparison-detail.html',
                 controller: 'ComparisonDetailController'
+            })
+            .when('/error', {
+                templateUrl: '/error.html',
+                controller: 'ErrorController'
             });
 	}
 ]);
