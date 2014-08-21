@@ -10,7 +10,6 @@ var app = angular.module('app', [
 ]);
 
 app.run(['$rootScope', '$location', '$window', function ($rootScope, $location, $window) {
-    console.log('inside run');
     $rootScope.$on('$routeChangeSuccess', function() {
         if (!$window.ga) {
             console.log('skipping google pageview, no ga available');
@@ -21,6 +20,45 @@ app.run(['$rootScope', '$location', '$window', function ($rootScope, $location, 
     });
 }]);
 
+app.factory('AuthenticationService', function($window) {
+    var auth = {
+        isLogged: $window.sessionStorage.token != undefined ? true : false,
+        logout: function() {
+            delete $window.sessionStorage.token;
+        }
+    };
+
+    return auth;
+});
+
+app.factory('Error', function() {
+    return {message:undefined}
+});
+
+app.factory('authInterceptor', function($rootScope, $q, $window) {
+   return {
+       request: function(config) {
+           config.headers = config.headers || {};
+           if ($window.sessionStorage.token) {
+               config.headers.Authorization = 'Bearer ' + $window.sessionStorage.token;
+           }
+
+           return config;
+       },
+       response: function(response) {
+           if (response.status == 401) {
+               console.log('user is not authenticated, now what?');
+           }
+
+           return response || $q.when(response);
+       }
+   };
+});
+
+app.config(function ($httpProvider) {
+    $httpProvider.interceptors.push('authInterceptor');
+});
+
 app.config(['$routeProvider', '$locationProvider',
 	function($routeProvider, $locationProvider) {
 		$locationProvider.html5Mode(true);
@@ -30,6 +68,10 @@ app.config(['$routeProvider', '$locationProvider',
 				templateUrl: '/home.html',
 				controller: 'MainController'
 			}).
+            when('/home', {
+                templateUrl: '/home.html',
+                controller: 'MainController'
+            }).
             when('/stravareturn', {
                 templateUrl: '/stravareturn.html',
                 controller: 'StravaReturnController'
@@ -45,6 +87,10 @@ app.config(['$routeProvider', '$locationProvider',
             when('/comparisons/:comparisonId', {
                 templateUrl: '/comparison-detail.html',
                 controller: 'ComparisonDetailController'
+            })
+            .when('/error', {
+                templateUrl: '/error.html',
+                controller: 'ErrorController'
             });
 	}
 ]);

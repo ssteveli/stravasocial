@@ -4,4 +4,6 @@ gearman
 flask
 pyconfig
 beaker
+Flask-JWT
+
 
