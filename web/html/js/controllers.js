@@ -238,8 +238,8 @@ appControllers.controller('NewComparisonController', ['$scope', '$http', '$resou
         };
     }]);
 
-appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$routeParams', '$timeout', '$location', '$filter', 'ngTableParams', 'Athlete',
-    function ($scope, $http, $routeParams, $timeout, $location, $filter, ngTableParams, Athlete) {
+appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$routeParams', '$timeout', '$location', '$filter', '$resource', 'ngTableParams', 'Athlete',
+    function ($scope, $http, $routeParams, $timeout, $location, $filter, $resource, ngTableParams, Athlete) {
         $scope.loading = true;
         $scope.notfound = false;
         $scope.found = true;
@@ -391,6 +391,29 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
 
             retrieveComparisons();
         });
+
+        $scope.activityTabOpened = function() {
+            if (!$scope.atableParams) {
+                $scope.loadingActivities = true;
+                Athlete.getAthlete().then(function (athlete) {
+                    $scope.measure_preference = athlete.measure_preference;
+                    $scope.data = $resource('/api/strava/comparisons/' + $scope.comparison.id + '/activities').query();
+                    $scope.data.$promise.then(function (data) {
+                        $scope.loadingActivities = false;
+                        $scope.atableParams = new ngTableParams({
+                            page: 1,
+                            count: 10
+                        }, {
+                            total: 0,
+                            getData: function ($defer, params) {
+                                params.total(data.length);
+                                $defer.resolve(data.slice((params.page() - 1) * params.count(), params.page() * params.count()));
+                            }
+                        });
+                    });
+                });
+            }
+        };
 
         $scope.xFunction = function(){
             return function(d) {

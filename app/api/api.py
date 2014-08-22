@@ -288,7 +288,7 @@ def get_comparison_by_id(comparisonid):
         abort(404, 'comparisonid of {} was not found'.format(comparisonid))
 
     _id = ObjectId(str(comparisonid))
-    comparison = con.comparisons.find_one({'_id': ObjectId(str(comparisonid))})
+    comparison = con.comparisons.find_one({'_id': _id})
 
     if comparison is None:
         abort(404, 'the specified comparison id {} was not found'.format(comparisonid))
@@ -310,6 +310,44 @@ def get_comparison_by_id(comparisonid):
         headers={
            'cache-control': 'max-age=300' if comparison['state'] == 'Completed' else 'no-cache'
         })
+
+@app.route('/api/strava/comparisons/<comparison_id>/activities')
+@jwt_required()
+def get_activities_by_comparison(comparison_id):
+    if comparison_id == 'undefined':
+        abort(404, 'comparisonid of {} was not found'.format(comparison_id))
+
+    _id = ObjectId(str(comparison_id))
+    comparison = con.comparisons.find_one({'_id': _id}, {'activity_ids': 1, 'athlete_id': 1})
+
+    if comparison is None:
+        abort(404, 'the specified comparison id {} was not found'.format(comparison_id))
+
+    # if this isn't a public comparisons, then this athlete must be the originator
+    if current_user.athlete_id != comparison['athlete_id'] and not is_role('admin'):
+        abort(404, 'the specified comparison id {} was not found'.format(comparison_id))
+
+    results = []
+    sd = get_stravadao()
+    for activity_id in comparison['activity_ids']:
+        a = sd.get_activity(activity_id)
+
+        if a is not None:
+            results.append({
+                'id': a.id,
+                'name': a.name,
+                'start_date_local': str(a.start_date_local),
+                'distance': int(a.distance)
+            })
+
+    results.sort(key=lambda x: x['start_date_local'], reverse=True)
+
+    return Response(dumps(results),
+        mimetype='application/json',
+        headers={
+            'cache-control': 'max-age=120'
+        })
+
 
 @app.route('/api/strava/athlete')
 @jwt_required()
