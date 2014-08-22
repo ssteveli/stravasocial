@@ -191,7 +191,7 @@
         </tab>
         <tab heading="Activities" select="activityTabOpened()">
             <span ng-if="loadingActivities"><img src="/assets/loading.gif"/> Loading activities, please wait...</span>
-            <div ng-if="!loadingActivities">
+            <div ng-if="!loadingActivities && atableParams">
                 <table ng-table="atableParams" class="table">
                     <tr ng-repeat="a in $data">
                         <td data-title="'Date'" style="white-space: nowrap;">{{a.start_date_local}}</td>
@@ -199,6 +199,7 @@
                         <td data-title="'Distance'" style="white-space: nowrap;">{{a.distance | feet:measure_preference}}</td>
                     </tr>
                 </table>
+                <span ng-if="!loadingActivities && !atableParams">Activities have not been captured yet or are not available with this comparisons</span>
             </div>
         </tab>
     </tabset>

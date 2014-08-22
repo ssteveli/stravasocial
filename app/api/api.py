@@ -327,6 +327,9 @@ def get_activities_by_comparison(comparison_id):
     if current_user.athlete_id != comparison['athlete_id'] and not is_role('admin'):
         abort(404, 'the specified comparison id {} was not found'.format(comparison_id))
 
+    if 'activity_ids' not in comparison:
+        abort(404, 'activities have not been identified yet')
+        
     results = []
     sd = get_stravadao()
     for activity_id in comparison['activity_ids']:

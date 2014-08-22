@@ -46,6 +46,13 @@ def handle_event(event_type, **kwargs):
             'current_activity_idx': kwargs['current_activity_idx'],
             'total_activities': kwargs['total_activities']
         }}, upsert=True)
+    elif event_type == 'activities_identified':
+        ids = []
+        for a in kwargs['activities']:
+            ids.append(a.id)
+        c.comparisons.update({'_id': kwargs['id']}, {'$set': {
+            'activity_ids': ids
+        }}, upsert=True)
     elif event_type == 'match':
         c.comparisons.update({'_id': kwargs['id']}, {'$push': { 'comparisons': kwargs['effort'] } }, upsert=True)
     elif event_type == 'complete':

@@ -411,6 +411,9 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                             }
                         });
                     });
+                }, function(error) {
+                    $scope.atableParams = undefined;
+                    $scope.loadingActivities = false;
                 });
             }
         };

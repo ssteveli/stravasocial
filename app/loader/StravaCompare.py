@@ -36,6 +36,7 @@ class StravaCompare:
 
         if days is not None:
             activities = self.getActivities(self.athlete_id, days=days)
+            self.fireCallback('activities_identified', activities=activities)
         elif activity_ids is not None:
             for aid in activity_ids[:10]:
                 activities.append(self.sd.get_activity(aid))
