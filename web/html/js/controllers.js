@@ -1,10 +1,7 @@
 
 var appControllers = angular.module('appControllers', ['ipCookie']);
-
-var mp = undefined;
-
-appControllers.controller('MainController', ['$scope', '$routeParams', '$http', '$location', '$window', 'AuthenticationService', 'Error',
-	function($scope, $routeParams, $http, $location, $window, AuthenticationService, Error) {
+appControllers.controller('MainController', ['$scope', '$routeParams', '$http', '$location', '$window', 'AuthenticationService', 'Athlete', 'Error',
+	function($scope, $routeParams, $http, $location, $window, AuthenticationService, Athlete, Error) {
         $scope.ready = false;
 
         if (AuthenticationService.isLogged) {
@@ -13,6 +10,7 @@ appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 
                 .success(function(data) {
                     $scope.ready = true;
                     $scope.athlete = data;
+                    Athlete.mp = data.measure_preference;
                 })
                 .error(function (error, status) {
                     if (status >= 500) {
@@ -147,19 +145,12 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
         };
     }]);
 
-appControllers.controller('NewComparisonController', ['$scope', '$http', '$resource', '$filter', '$location', 'ngTableParams', 'Error',
-    function($scope, $http, $resource, $filter, $location, ngTableParams, Error) {
+appControllers.controller('NewComparisonController', ['$scope', '$http', '$resource', '$filter', '$location', 'ngTableParams', 'Athlete', 'Error',
+    function($scope, $http, $resource, $filter, $location, ngTableParams, Athlete, Error) {
         $http.get('/api/strava/athlete').
             success(function(data) {
                 $scope.athlete = data;
-
-                if (mp == undefined) {
-                    mp = data.measurement_preference;
-                    $scope.measurement_preference = mp;
-                } else {
-                    $scope.measurement_preference = mp;
-                }
-
+                Athlete.mp = data.measure_preference;
             }).error(function(error, status) {
                 console.log('athlete resource error: ' + JSON.stringify(error));
                 console.log('status: ' + JSON.stringify(status));
@@ -269,8 +260,8 @@ appControllers.controller('NewComparisonController', ['$scope', '$http', '$resou
         };
     }]);
 
-appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$routeParams', '$timeout', '$location', '$filter', 'ngTableParams',
-    function ($scope, $http, $routeParams, $timeout, $location, $filter, ngTableParams) {
+appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$routeParams', '$timeout', '$location', '$filter', 'ngTableParams', 'Athlete',
+    function ($scope, $http, $routeParams, $timeout, $location, $filter, ngTableParams, Athlete) {
         $scope.loading = true;
         $scope.notfound = false;
         $scope.found = true;
@@ -368,7 +359,7 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
 
                     $scope.xAxisTickFormatFunction = function(x) {
                         return function(d) {
-                            return format_distance(d, mp);
+                            return format_distance(d);
                         }
                     }
 
@@ -416,15 +407,13 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                 });
         }
 
-        if (mp == undefined) {
+        if (Athlete.mp == undefined) {
             $http.get('/api/strava/athlete').
                 success(function (data) {
-                    mp = data.measurement_preference;
-                    $scope.measurement_preference = mp;
+                    Athlete.mp = data.measure_preference;
                     retrieveComparisons();
                 });
         } else {
-            $scope.measurement_preference = mp;
             retrieveComparisons();
         }
 
