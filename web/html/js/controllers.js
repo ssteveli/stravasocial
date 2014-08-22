@@ -1,5 +1,5 @@
 
-var appControllers = angular.module('appControllers', ['ipCookie']);
+var appControllers = angular.module('appControllers', []);
 appControllers.controller('MainController', ['$scope', '$routeParams', '$http', '$location', '$window', 'AuthenticationService', 'Athlete', 'Error',
 	function($scope, $routeParams, $http, $location, $window, AuthenticationService, Athlete, Error) {
         $scope.ready = false;
