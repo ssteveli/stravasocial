@@ -410,10 +410,10 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                                 $defer.resolve(data.slice((params.page() - 1) * params.count(), params.page() * params.count()));
                             }
                         });
+                    }, function(error) {
+                        $scope.atableParams = undefined;
+                        $scope.loadingActivities = false;
                     });
-                }, function(error) {
-                    $scope.atableParams = undefined;
-                    $scope.loadingActivities = false;
                 });
             }
         };
