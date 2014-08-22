@@ -34,8 +34,34 @@ app.factory('Error', function() {
     return {message:undefined};
 });
 
-app.factory('Athlete', function() {
-    return {mp:undefined};
+app.factory('Athlete', function($http, $q) {
+    return {
+        getAthlete: function() {
+            var d = $q.defer();
+            $http.get('/api/strava/athlete')
+                .success(function (data) {
+                    d.resolve(data);
+                })
+                .error(function (msg, code) {
+                    d.reject(msg);
+                    console.log('failed to retrieve athlete: ' + JSON.stringify(msg));
+                });
+
+            return d.promise;
+        },
+        getPlan: function() {
+            var d = $q.defer();
+            $http.get('/api/strava/athlete/plan')
+                .success(function (data) {
+                    d.resolve(data);
+                })
+                .error(function (msg, code) {
+                    d.reject(msg);
+                    console.log('failed to retrieve the athlete plan: ' + JSON.stringify(msg));
+                });
+            return d.promise;
+        }
+    };
 });
 
 app.factory('authInterceptor', function($rootScope, $q, $window) {
@@ -167,9 +193,9 @@ angular.module('myFilters', []).filter('timeago', function() {
     return function(input) {
         return $.timeago(new Date(input));
     }
-}).filter('feet', function(Athlete) {
-    return function(input) {
-        return format_distance(input, Athlete.mp);
+}).filter('feet', function() {
+    return function(input, pref) {
+        return format_distance(input, pref);
     }
 }).filter('seconds', function() {
    return function(input) {

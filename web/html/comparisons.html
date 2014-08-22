@@ -63,7 +63,7 @@
                             <accordion-group heading="Activities in the Past ## Days">
                                 <div class="form-group">
                                     <label for="days_ago">Number of days in the past to examine activities</label>
-                                    <input class="form=control" type="number" min="1" max="10" id="days_ago" name="days_ago" ng-model="days_ago" placeholder="Days Ago"/>
+                                    <input class="form=control" type="number" min="1" max="10" id="days_ago" name="days_ago" ng-model="days_ago"/>
                                             <span class="help-block">
                                                 <span class="error" ng-show="!newcomparisonform.days_ago.$valid">Must be between 1 and 10 days</span>
                                             </span>
@@ -78,7 +78,7 @@
                                             ng-class="{'active': a.$selected}">
                                             <td data-title="'Date'" style="white-space: nowrap;">{{a.start_date_local}}</td>
                                             <td data-title="'Activity Name'">{{a.name}}</td>
-                                            <td data-title="'Distance'" style="white-space: nowrap;">{{a.distance | feet}}</td>
+                                            <td data-title="'Distance'" style="white-space: nowrap;">{{a.distance | feet:measure_preference}}</td>
                                         </tr>
                                     </table>
                                 </div>

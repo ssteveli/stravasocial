@@ -1,5 +1,5 @@
 <span ng-if="!ready"><img src="/assets/loading.gif"/> Please wait we're scrambling some eggs here ... </span>
-<div ng-if="ready" ng-init="scope = { isConnectDisabled: true }">
+<div ng-if="ready" ng-init="scope = { ready: false }">
     <a ng-hide="isAuthenticated" ng-click="sendToStrava()"><img src="assets/ConnectWithStrava.png" alt="Connect with Strava"/></a>
 
     <div ng-show="isAuthenticated">

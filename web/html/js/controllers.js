@@ -2,29 +2,7 @@
 var appControllers = angular.module('appControllers', []);
 appControllers.controller('MainController', ['$scope', '$routeParams', '$http', '$location', '$window', 'AuthenticationService', 'Athlete', 'Error',
 	function($scope, $routeParams, $http, $location, $window, AuthenticationService, Athlete, Error) {
-        $scope.ready = false;
-
-        if (AuthenticationService.isLogged) {
-            $scope.isAuthenticated = true;
-            $http.get('/api/strava/athlete')
-                .success(function(data) {
-                    $scope.ready = true;
-                    $scope.athlete = data;
-                    Athlete.mp = data.measure_preference;
-                })
-                .error(function (error, status) {
-                    if (status >= 500) {
-                        Error.message = 'Well this is really embarrassing, the StravaCompare API doesn\'t seem to be available.  Our room of operation monkeys has been notified, please come back later and try again.';
-                        $location.path('/error');
-                    }
-
-                    $scope.isAuthenticated = false;
-                    $scope.apiUnavailable = true;
-                    $scope.ready = true;
-                });
-        } else {
-            $scope.isAuthenticated = false;
-
+        var setupRedirectUrl = function() {
             var return_url = window.location.protocol +
                 '//' +
                 window.location.hostname +
@@ -33,12 +11,26 @@ appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 
             $http.get('/api/strava/authorization?redirect_uri=' + return_url)
                 .success(function(data) {
                     $scope.url = data.url;
+                    $scope.isAuthenticated = false;
                     $scope.ready = true;
                 })
                 .error(function (data) {
                     Error.message = 'Well this is really embarrassing, the StravaCompare API doesn\'t seem to be available.  Our room of operation monkeys has been notified, please come back later and try again.';
                     $location.path('/error');
                 });
+        }
+
+        if (AuthenticationService.isLogged) {
+            Athlete.getAthlete().then(function (data) {
+                $scope.athlete = data;
+                $scope.isAuthenticated = true;
+                $scope.ready = true;
+            }, function (msg, code) {
+                Error.message = 'Well this is really embarrassing, the StravaCompare API doesn\'t seem to be available.  Our room of operation monkeys has been notified, please come back later and try again.';
+                $location.path('/error');
+            });
+        } else {
+            setupRedirectUrl();
         }
 
 		$scope.sendToStrava = function() {
@@ -50,6 +42,7 @@ appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 
                 .success(function(data) {
                     AuthenticationService.logout();
                     $scope.isAuthenticated = false;
+                    setupRedirectUrl();
 				})
                 .error(function (error) {
                     console.log('error deleting authorization: ' + JSON.stringify(error));
@@ -147,68 +140,53 @@ appControllers.controller('ComparisonController', ['$scope', '$http', '$routePar
 
 appControllers.controller('NewComparisonController', ['$scope', '$http', '$resource', '$filter', '$location', 'ngTableParams', 'Athlete', 'Error',
     function($scope, $http, $resource, $filter, $location, ngTableParams, Athlete, Error) {
-        $http.get('/api/strava/athlete').
-            success(function(data) {
-                $scope.athlete = data;
-                Athlete.mp = data.measure_preference;
-            }).error(function(error, status) {
-                console.log('athlete resource error: ' + JSON.stringify(error));
-                console.log('status: ' + JSON.stringify(status));
-
-                if (status >= 500) {
-                    Error.message = 'Well this is horribly embarrassing, there seems to be some type of system failure trying to figure out who you are';
-                    $location.path('/error');
-                } else {
-                    $location.path('/');
-                }
-            });
-
         $scope.days_ago = undefined;
 
         $scope.openLaunch = function() {
             $scope.$watch('acc2open', function() {
                 if ($scope.acc2open) {
                     $scope.loading = true;
-                    $scope.data = $resource('/api/strava/activities').query();
-                    $scope.data.$promise.then(function (data) {
-                        $scope.loading = false;
-                        $scope.atableParams = new ngTableParams({
-                            page: 1,
-                            count: 10
-                        }, {
-                            total: 0,
-                            getData: function ($defer, params) {
-                                params.total(data.length);
-                                $defer.resolve(data.slice((params.page() - 1) * params.count(), params.page() * params.count()));
-                            }
+                    Athlete.getAthlete().then(function (athlete) {
+                        $scope.measure_preference = athlete.measure_preference;
+                        $scope.data = $resource('/api/strava/activities').query();
+                        $scope.data.$promise.then(function (data) {
+                            $scope.loading = false;
+                            $scope.atableParams = new ngTableParams({
+                                page: 1,
+                                count: 10
+                            }, {
+                                total: 0,
+                                getData: function ($defer, params) {
+                                    params.total(data.length);
+                                    $defer.resolve(data.slice((params.page() - 1) * params.count(), params.page() * params.count()));
+                                }
+                            });
                         });
                     });
                 }
             });
 
-            $http.get('/api/strava/athlete/plan').
-                success(function (data) {
-                    if (data.is_execution_allowed) {
-                        $scope.showDialog = true;
-                        $scope.isLaunchDisabled = false;
-                    } else {
-                        if (data.next_execution_code == "DISABLED")
-                            $scope.$emit('errorlaunch', {'message': 'The ability to run comparisons is currently disabled, please try again later.'});
-                        else if (data.next_execution_code == "ENFORCED_DELAY")
-                            $scope.$emit('errorlaunch',
-                                {'message':
-                                    'Sorry, your account requires  ' +
-                                    format_seconds(data.delay) +
-                                    ' between comparisons, you must wait another ' +
-                                    format_seconds(data.next_execution_time - (new Date().getTime()/1000))});
-                        else if (data.next_execution_code == "JOB_RUNNING")
-                            $scope.$emit('errorlaunch', {'message': 'Sorry, you have a comparison running which must complete first'});
-                        $scope.isLaunchDisabled = true;
-                    }
-                }).
-                error(function (data) {
-                    $scope.$emit('errorlaunch', {'message': 'Sorry, comparisons are not allowed at this time'});
-                });
+            Athlete.getPlan().then(function (data) {
+                if (data.is_execution_allowed) {
+                    $scope.showDialog = true;
+                    $scope.isLaunchDisabled = false;
+                } else {
+                    if (data.next_execution_code == "DISABLED")
+                        $scope.$emit('errorlaunch', {'message': 'The ability to run comparisons is currently disabled, please try again later.'});
+                    else if (data.next_execution_code == "ENFORCED_DELAY")
+                        $scope.$emit('errorlaunch',
+                            {'message':
+                                'Sorry, your account requires  ' +
+                                format_seconds(data.delay) +
+                                ' between comparisons, you must wait another ' +
+                                format_seconds(data.next_execution_time - (new Date().getTime()/1000))});
+                    else if (data.next_execution_code == "JOB_RUNNING")
+                        $scope.$emit('errorlaunch', {'message': 'Sorry, you have a comparison running which must complete first'});
+                    $scope.isLaunchDisabled = true;
+                }
+            }, function (error) {
+                $scope.$emit('errorlaunch', {'message': 'Sorry, comparisons are not allowed at this time'});
+            });
         };
 
         $scope.closeLaunch = function() {
@@ -277,145 +255,142 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                 $scope.social_sharing = false;
           });
 
-        var retrieveComparisons = function () {
-            $http.get('/api/strava/comparisons/' + $routeParams.comparisonId).
-                success(function (data) {
-                    $scope.tableParams = new ngTableParams({
-                        page: 1,
-                        count: 10,
-                        sorting: {}
-                    }, {
-                        total: 0,
-                        getData: function($defer, params) {
-                            var orderedData = params.sorting() ?
-                                $filter('orderBy')(data.comparisons, params.orderBy()) : data.comparisons;
-                            params.total(data.comparisons.length);
-                            $defer.resolve(orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count()));
+        Athlete.getAthlete().then(function (athlete) {
+            $scope.measure_preference = athlete.measure_preference;
+
+            var retrieveComparisons = function () {
+                $http.get('/api/strava/comparisons/' + $routeParams.comparisonId).
+                    success(function (data) {
+                        $scope.tableParams = new ngTableParams({
+                            page: 1,
+                            count: 10,
+                            sorting: {}
+                        }, {
+                            total: 0,
+                            getData: function($defer, params) {
+                                var orderedData = params.sorting() ?
+                                    $filter('orderBy')(data.comparisons, params.orderBy()) : data.comparisons;
+                                params.total(data.comparisons.length);
+                                $defer.resolve(orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count()));
+                            }
+                        });
+
+                        var sum = 0;
+                        var win = 0;
+                        var loss = 0;
+                        var tied = 0;
+                        var ddata = [];
+                        var cdata = [];
+
+                        for (var i=0; i<data.comparisons.length; i++) {
+                            var c = data.comparisons[i];
+                            var diff = (c.compared_to_effort.moving_time - c.effort.moving_time);
+                            sum += diff;
+                            if (diff > 0) {
+                                win++;
+                            } else if (diff < 0) {
+                                loss++;
+                            } else {
+                                tied++;
+                            }
+
+                            data.comparisons[i].per_diff = diff/c.effort.moving_time;
+
+                            ddata.push({"x": c.effort.distance, "y": diff, "size": diff/c.effort.moving_time, "text": c.segment.name});
+                            cdata.push({"x": c.segment.average_grade, "y": diff, "size": diff/c.effort.moving_time, "text": c.segment.name});
                         }
-                    });
 
-                    var sum = 0;
-                    var win = 0;
-                    var loss = 0;
-                    var tied = 0;
-                    var ddata = [];
-                    var cdata = [];
+                        $scope.distanceScatter = [
+                            {
+                                "key": "Distance",
+                                "values": ddata
+                            }
+                        ];
 
-                    for (var i=0; i<data.comparisons.length; i++) {
-                        var c = data.comparisons[i];
-                        var diff = (c.compared_to_effort.moving_time - c.effort.moving_time);
-                        sum += diff;
-                        if (diff > 0) {
-                            win++;
-                        } else if (diff < 0) {
-                            loss++;
-                        } else {
-                            tied++;
-                        }
+                        $scope.climbScatter = [
+                            {
+                                "key": "Grade",
+                                "values": cdata
+                            }
+                        ];
 
-                        data.comparisons[i].per_diff = diff/c.effort.moving_time;
-
-                        ddata.push({"x": c.effort.distance, "y": diff, "size": diff/c.effort.moving_time, "text": c.segment.name});
-                        cdata.push({"x": c.segment.average_grade, "y": diff, "size": diff/c.effort.moving_time, "text": c.segment.name});
-                    }
-
-                    $scope.distanceScatter = [
-                        {
-                            "key": "Distance",
-                            "values": ddata
-                        }
-                    ];
-
-                    $scope.climbScatter = [
-                        {
-                            "key": "Grade",
-                            "values": cdata
-                        }
-                    ];
-
-                    $scope.$on('elementMouseover.tooltip.directive', function(angularEvent, event){
-                        angularEvent.targetScope.$parent.hovername = event.point.text;
-                        angularEvent.targetScope.$parent.hoverdiff = event.point.size;
-                        angularEvent.targetScope.$parent.$digest();
-                    });
-
-                    $scope.$on('elementMouseout.tooltip.directive', function(angularEvent, event){
-                        angularEvent.targetScope.$parent.hovername = undefined;
-                        angularEvent.targetScope.$parent.hoverdiff = undefined;
+                        $scope.$on('elementMouseover.tooltip.directive', function(angularEvent, event){
+                            angularEvent.targetScope.$parent.hovername = event.point.text;
+                            angularEvent.targetScope.$parent.hoverdiff = event.point.size;
                             angularEvent.targetScope.$parent.$digest();
+                        });
+
+                        $scope.$on('elementMouseout.tooltip.directive', function(angularEvent, event){
+                            angularEvent.targetScope.$parent.hovername = undefined;
+                            angularEvent.targetScope.$parent.hoverdiff = undefined;
+                            angularEvent.targetScope.$parent.$digest();
+                        });
+
+                        $scope.comparison = data;
+                        $scope.weighted_average_distance = get_distance_weighted_average(data.comparisons);
+                        $scope.weighted_average_climb = get_climbing_weighted_average(data.comparisons);
+                        $scope.total_time_difference = sum;
+                        $scope.wins = win;
+                        $scope.losses = loss;
+                        $scope.ties = tied;
+                        $scope.chartData = [
+                            {
+                                'key': 'Wins',
+                                'y': win
+                            },{
+                                'key': 'Losses',
+                                'y': loss
+                            },{
+                                'key': 'Tied',
+                                'y': tied
+                            }
+                        ];
+
+                        $scope.scolorFunction = function() {
+                            return function(d, i) {
+                                return '#FC4C02';
+                            };
+                        }
+
+                        $scope.yAxisTickFormatFunction = function() {
+                            return function(d) {
+                                return d.toFixed(0) + 's';
+                            }
+                        }
+
+                        $scope.xAxisTickFormatFunction = function() {
+                            return function(d) {
+                                return format_distance(d, athlete.measure_preference);
+                            }
+                        }
+
+                        $scope.xAxisTickFormatGradeFunction = function() {
+                            return function(d) {
+                                return d.toFixed(1) + '%';
+                            }
+                        }
+
+                        if (data.state == 'Running') {
+                            $timeout(retrieveComparisons, 1000)
+                        }
+
+                        $scope.found = true;
+                        $scope.notfound = false;
+                        $scope.loading = false;
+                    }).error(function (error) {
+                        console.log('error loading comparison: ' + JSON.stringify(error));
+                        $scope.found = false;
+                        $scope.notfound = true;
+                        $scope.loading = false;
+                    })
+                    .error(function (data, status) {
+                        console.log('data: ' + JSON.stringify(data));
+                        console.log('status: ' + JSON.stringify(status));
                     });
+            }
 
-                    $scope.scolorFunction = function() {
-                        return function(d, i) {
-                            return '#FC4C02';
-                        };
-                    }
-
-                    $scope.yAxisTickFormatFunction = function(x) {
-                        return function(d) {
-                            return d.toFixed(0) + 's';
-                        }
-                    }
-
-                    $scope.xAxisTickFormatFunction = function(x) {
-                        return function(d) {
-                            return format_distance(d);
-                        }
-                    }
-
-                    $scope.xAxisTickFormatGradeFunction = function(x) {
-                        return function(d) {
-                            return d.toFixed(1) + '%';
-                        }
-                    }
-
-                    $scope.comparison = data;
-                    $scope.weighted_average_distance = get_distance_weighted_average(data.comparisons);
-                    $scope.weighted_average_climb = get_climbing_weighted_average(data.comparisons);
-                    $scope.total_time_difference = sum;
-                    $scope.wins = win;
-                    $scope.losses = loss;
-                    $scope.ties = tied;
-                    $scope.chartData = [
-                        {
-                            'key': 'Wins',
-                            'y': win
-                        },{
-                            'key': 'Losses',
-                            'y': loss
-                        },{
-                            'key': 'Tied',
-                            'y': tied
-                        }
-                    ];
-                    if (data.state == 'Running') {
-                        $timeout(retrieveComparisons, 1000)
-                    }
-
-                    $scope.found = true;
-                    $scope.notfound = false;
-                    $scope.loading = false;
-                }).error(function (error) {
-                    console.log('error loading comparison: ' + JSON.stringify(error));
-                    $scope.found = false;
-                    $scope.notfound = true;
-                    $scope.loading = false;
-                })
-                .error(function (data, status) {
-                    console.log('data: ' + JSON.stringify(data));
-                    console.log('status: ' + JSON.stringify(status));
-                });
-        }
-
-        if (Athlete.mp == undefined) {
-            $http.get('/api/strava/athlete').
-                success(function (data) {
-                    Athlete.mp = data.measure_preference;
-                    retrieveComparisons();
-                });
-        } else {
             retrieveComparisons();
-        }
+        });
 
         $scope.xFunction = function(){
             return function(d) {
@@ -445,23 +420,6 @@ appControllers.controller('ErrorController', ['$scope', '$window', 'Error', func
         $window.history.back();
     }
 }]);
-
-function manageSession($scope, $http, ipCookie) {
-    $scope.sessionId = ipCookie('stravaSocialSessionId');
-
-    if ($scope.sessionId) {
-        console.log('validating session ' + $scope.sessionId);
-        $http.get('/api/strava/authorizations/' + $scope.sessionId + '/isvalid').
-            success(function(data) {
-                $scope.sessionIsValid = data.is_valid;
-
-                $http.get('/api/strava/athletes/' + data.athlete_id).
-                    success(function(data) {
-                        $scope.athlete = data;
-                    });
-            });
-    }
-}
 
 function handleMissingImage(image) {
     image.src = '/assets/no_image_small.png';
