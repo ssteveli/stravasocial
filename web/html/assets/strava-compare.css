@@ -1,5 +1,5 @@
 body {
-    padding-top: 50px;
+    padding-top: 75px;
 }
 
 .navbar-inverse {
@@ -112,6 +112,17 @@ fieldset[disabled] .btn-custom.active {
 
 .ng-table-rowselected tr {
     cursor: pointer;
+}
+
+.poweredbystrava {
+    background-image: url(http://cf.veloviewer.com/img/StravaLogo.png);
+    background-position: 0px -20px;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    width:95px;
+    text-indent: -10000px;
+    padding: 0px !important;
+    display: inline-block !important;
 }
 
 
