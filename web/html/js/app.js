@@ -5,7 +5,8 @@ var app = angular.module('app', [
 	'appControllers',
     'myFilters',
     'nvd3ChartDirectives',
-    'ui.bootstrap'
+    'ui.bootstrap',
+    'LocalStorageModule'
 ]);
 
 app.run(['$rootScope', '$location', '$window', function ($rootScope, $location, $window) {
@@ -19,12 +20,9 @@ app.run(['$rootScope', '$location', '$window', function ($rootScope, $location, 
     });
 }]);
 
-app.factory('AuthenticationService', function($window) {
+app.factory('AuthenticationService', function($window, localStorageService) {
     var auth = {
-        isLogged: $window.sessionStorage.token != undefined ? true : false,
-        logout: function() {
-            delete $window.sessionStorage.token;
-        }
+        isLogged: localStorageService.get('token') != undefined ? true : false
     };
 
     return auth;
@@ -64,12 +62,12 @@ app.factory('Athlete', function($http, $q) {
     };
 });
 
-app.factory('authInterceptor', function($rootScope, $q, $window) {
+app.factory('authInterceptor', function($rootScope, $q, $window, localStorageService) {
    return {
        request: function(config) {
            config.headers = config.headers || {};
-           if ($window.sessionStorage.token) {
-               config.headers.Authorization = 'Bearer ' + $window.sessionStorage.token;
+           if (localStorageService.get('token')) {
+               config.headers.Authorization = 'Bearer ' + localStorageService.get('token');
            }
 
            return config;

@@ -1,7 +1,7 @@
 
 var appControllers = angular.module('appControllers', []);
-appControllers.controller('MainController', ['$scope', '$routeParams', '$http', '$location', '$window', 'AuthenticationService', 'Athlete', 'Error',
-	function($scope, $routeParams, $http, $location, $window, AuthenticationService, Athlete, Error) {
+appControllers.controller('MainController', ['$scope', '$routeParams', '$http', '$location', '$window', 'AuthenticationService', 'Athlete', 'Error', 'localStorageService',
+	function($scope, $routeParams, $http, $location, $window, AuthenticationService, Athlete, Error, localStorageService) {
         var setupRedirectUrl = function() {
             var return_url = window.location.protocol +
                 '//' +
@@ -26,8 +26,16 @@ appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 
                 $scope.isAuthenticated = true;
                 $scope.ready = true;
             }, function (msg, code) {
-                Error.message = 'Well this is really embarrassing, the StravaCompare API doesn\'t seem to be available.  Our room of operation monkeys has been notified, please come back later and try again.';
-                $location.path('/error');
+                if (msg.message == 'invalid credentials') {
+                    AuthenticationService.isLogged = false;
+                    $scope.isAuthenticated = false;
+                    $scope.ready = true;
+
+                    setupRedirectUrl();
+                } else {
+                    Error.message = 'Well this is really embarrassing, the StravaCompare API doesn\'t seem to be available.  Our room of operation monkeys has been notified, please come back later and try again.';
+                    $location.path('/error');
+                }
             });
         } else {
             setupRedirectUrl();
@@ -40,8 +48,8 @@ appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 
 		$scope.disconnect = function disconnect() {
 			$http.delete('/api/strava/authorizations/session')
                 .success(function(data) {
-                    AuthenticationService.logout();
                     $scope.isAuthenticated = false;
+                    localStorageService.remove('token');
                     setupRedirectUrl();
 				})
                 .error(function (error) {
@@ -51,8 +59,8 @@ appControllers.controller('MainController', ['$scope', '$routeParams', '$http', 
 	}
 ]);
 
-appControllers.controller('StravaReturnController', ['$window', '$scope', '$location', '$http',
-    function($window, $scope, $location, $http) {
+appControllers.controller('StravaReturnController', ['$window', '$scope', '$location', '$http', 'localStorageService',
+    function($window, $scope, $location, $http, localStorageService) {
         $scope.code = $location.search()['code'];
         $scope.state = $location.search()['state'];
         $scope.error = $location.search()['error'];
@@ -62,12 +70,12 @@ appControllers.controller('StravaReturnController', ['$window', '$scope', '$loca
 
             $http.post('/auth', $scope.payload)
                 .success(function (data, status, headers, config) {
-                    $window.sessionStorage.token = data.token;
+                    localStorageService.set('token', data.token);
                     $location.path('/home');
                 })
                 .error(function (data, status, headers, config) {
                     console.log('error from auth' + JSON.stringify(data));
-                    delete $window.sessionStorage.token;
+                    localStorageService.delete('token');
                     $scope.error = data;
                 });
         }
