@@ -303,6 +303,7 @@ def get_comparison_by_id(comparisonid):
     if not public and current_user.athlete_id != comparison['athlete_id'] and not is_role('admin'):
         abort(404, 'the specified comparison id {} was not found'.format(comparisonid))
 
+    comparison['athlete'] = get_athlete_dict(comparison['athlete_id'])
     comparison['compare_to_athlete'] = get_athlete_dict(comparison['compare_to_athlete_id'])
     comparison['id'] = str(comparison['_id'])
     comparison.pop('_id')
@@ -343,6 +344,7 @@ def update_comparison_by_id(comparisonid):
             con.comparisons.update({'_id': _id}, {'$set':{'view_type': req['view_type']}})
             comparison['view_type'] = req['view_type']
 
+    comparison['athlete'] = get_athlete_dict(comparison['athlete_id'])
     comparison['compare_to_athlete'] = get_athlete_dict(comparison['compare_to_athlete_id'])
     comparison['id'] = str(comparison['_id'])
     comparison.pop('_id')

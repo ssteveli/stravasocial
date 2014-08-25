@@ -3,6 +3,9 @@
 <div ng-if="found">
     <div class="container-fluid">
         <div class="row">
+            <div class="col-lg-2"><img ng-src="{{comparison.athlete.profile}}" onerror="handleMissingImage(this);"/></div>
+            <div class="col-lg-3"><h2>{{comparison.athlete.firstname}} {{comparison.athlete.lastname}}</h2></div>
+            <div class="col-lg-1"><h3>VS.</h3></div>
             <div class="col-lg-2"><img ng-src="{{comparison.compare_to_athlete.profile}}" onerror="handleMissingImage(this);"/></div>
             <div class="col-lg-3"><h2>{{comparison.compare_to_athlete.firstname}} {{comparison.compare_to_athlete.lastname}}</h2></div>
         </div>
@@ -81,7 +84,10 @@
                         <td>Climbing WAD <i class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="Percentage you're faster or slower than {{comparison.compare_to_athlete.firstname}} with steeper segments weighted higher in the score.   See the FAQ for more details." popover-placement="bottom" popover-append-to-body="true"></i></td>
                         <td><span ng-class="{'red' : (weighted_average_climb) < 0}">{{weighted_average_climb | number:2}}%</span></td>
                     </tr>
-
+                    <tr ng-if="public_sharing">
+                        <td ng-if="view_type == 'public'" colspan="2"><a target="_blank" href="{{public_url}}">Go Here!</a></td>
+                        <td ng-if="view_type == 'private'" colspan="2">Share with your friends</td>
+                    </tr>
                 </table>
             </div>
         </div>

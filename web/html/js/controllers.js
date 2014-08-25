@@ -269,6 +269,30 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
             var retrieveComparisons = function () {
                 $http.get('/api/strava/comparisons/' + $routeParams.comparisonId).
                     success(function (data) {
+                        $scope.public_sharing = false;
+                        $http.get('/api/admin/featureFlags/publicSharing')
+                            .success(function (feature_data) {
+                                if (feature_data == 'true') {
+                                    $scope.public_sharing = true;
+                                    if (data.view_type) {
+                                        $scope.view_type = data.view_type;
+
+                                        $scope.public_url = window.location.protocol +
+                                            '//' +
+                                            window.location.hostname +
+                                            '/comparisons/' + data.id;
+
+                                        if (data.public_url)
+                                            $scope.public_url = data.public_url;
+
+                                    } else
+                                        $scope.view_type = 'private';
+                                }
+                            })
+                            .error(function (error) {
+                                console.log('error determining if the publicSharing feature is turned on: ' + JSON.stringify(error));
+                            });
+
                         $scope.tableParams = new ngTableParams({
                             page: 1,
                             count: 10,
