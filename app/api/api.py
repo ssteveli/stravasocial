@@ -20,7 +20,7 @@ from model import Athlete
 import logging
 import logging.handlers
 
-from flask_jwt import JWT, jwt_required, current_user
+from flask_jwt import JWT, jwt_required, current_user, verify_jwt
 
 log = logging.getLogger("stravacompare")
 log.setLevel(logging.DEBUG)
@@ -282,7 +282,6 @@ def delete_comparison(comparison_id):
         abort(400, 'invalid comparison id')
 
 @app.route('/api/strava/comparisons/<comparisonid>')
-@jwt_required()
 def get_comparison_by_id(comparisonid):
     if comparisonid == 'undefined':
         abort(404, 'comparisonid of {} was not found'.format(comparisonid))
@@ -293,8 +292,15 @@ def get_comparison_by_id(comparisonid):
     if comparison is None:
         abort(404, 'the specified comparison id {} was not found'.format(comparisonid))
 
+    public = False
+    if 'view_type' in comparison:
+        public = True if comparison['view_type'] == 'public' else False
+
+    if not public:
+        verify_jwt()
+
     # if this isn't a public comparisons, then this athlete must be the originator
-    if current_user.athlete_id != comparison['athlete_id'] and not is_role('admin'):
+    if not public and current_user.athlete_id != comparison['athlete_id'] and not is_role('admin'):
         abort(404, 'the specified comparison id {} was not found'.format(comparisonid))
 
     comparison['compare_to_athlete'] = get_athlete_dict(comparison['compare_to_athlete_id'])
@@ -311,25 +317,71 @@ def get_comparison_by_id(comparisonid):
            'cache-control': 'max-age=300' if comparison['state'] == 'Completed' else 'no-cache'
         })
 
-@app.route('/api/strava/comparisons/<comparison_id>/activities')
+@app.route('/api/strava/comparisons/<comparisonid>', methods=['PUT'])
 @jwt_required()
+def update_comparison_by_id(comparisonid):
+    if comparisonid == 'undefined':
+        abort(404, 'comparisonid of {} was not found'.format(comparisonid))
+
+    _id = ObjectId(str(comparisonid))
+    comparison = con.comparisons.find_one({'_id': _id})
+
+    if comparison is None:
+        abort(404, 'the specified comparison id {} was not found'.format(comparisonid))
+
+    if current_user.athlete_id != comparison['athlete_id'] and not is_role('admin'):
+        abort(404, 'the specified comparison id {} was not found'.format(comparisonid))
+
+    req = request.get_json()
+
+    # right now, the only thing we allow to be updated is the view_type
+    if 'view_type' in req:
+        valid_types = ['public', 'private']
+        if req['view_type'] not in valid_types:
+            abort(400, 'the specified view_type of ({}) is not allowed, the only valid values are: {}'.format(req['view_type'], valid_types))
+        else:
+            con.comparisons.update({'_id': _id}, {'$set':{'view_type': req['view_type']}})
+            comparison['view_type'] = req['view_type']
+
+    comparison['compare_to_athlete'] = get_athlete_dict(comparison['compare_to_athlete_id'])
+    comparison['id'] = str(comparison['_id'])
+    comparison.pop('_id')
+    comparison['url'] = request.path
+
+    if 'state' not in comparison:
+        comparison['state'] = 'Unknown'
+
+    return Response(dumps(comparison),
+        mimetype='application/json',
+        headers={
+           'cache-control': 'max-age=300' if comparison['state'] == 'Completed' else 'no-cache'
+        })
+
+@app.route('/api/strava/comparisons/<comparison_id>/activities')
 def get_activities_by_comparison(comparison_id):
     if comparison_id == 'undefined':
         abort(404, 'comparisonid of {} was not found'.format(comparison_id))
 
     _id = ObjectId(str(comparison_id))
-    comparison = con.comparisons.find_one({'_id': _id}, {'activity_ids': 1, 'athlete_id': 1})
+    comparison = con.comparisons.find_one({'_id': _id}, {'activity_ids': 1, 'athlete_id': 1, 'view_type': 1})
 
     if comparison is None:
         abort(404, 'the specified comparison id {} was not found'.format(comparison_id))
 
+    public = False
+    if 'view_type' in comparison:
+        public = True if comparison['view_type'] == 'public' else False
+
+    if not public:
+        verify_jwt()
+
     # if this isn't a public comparisons, then this athlete must be the originator
-    if current_user.athlete_id != comparison['athlete_id'] and not is_role('admin'):
+    if not public and current_user.athlete_id != comparison['athlete_id'] and not is_role('admin'):
         abort(404, 'the specified comparison id {} was not found'.format(comparison_id))
 
     if 'activity_ids' not in comparison:
         abort(404, 'activities have not been identified yet')
-        
+
     results = []
     sd = get_stravadao()
     for activity_id in comparison['activity_ids']:
@@ -350,7 +402,6 @@ def get_activities_by_comparison(comparison_id):
         headers={
             'cache-control': 'max-age=120'
         })
-
 
 @app.route('/api/strava/athlete')
 @jwt_required()
@@ -524,7 +575,7 @@ def get_stravadao():
     if current_user is not None and hasattr(current_user, 'access_token'):
         return Strava(current_user.access_token)
 
-    return Strava()
+    return Strava(pyconfig.get('strava.default_access_token', '7f8e5ab7ec53926c6165c96d64a22a589d8c48b6'))
 
 if __name__ == '__main__':
     app.run(host = '0.0.0.0')
