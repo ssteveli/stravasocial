@@ -246,7 +246,8 @@ def get_comparisons():
             result.append({
                 'id': str(r['_id']),
                 'comparisons_count': len(r['comparisons']) if 'comparisons' in r else 0,
-                'viewtype': 'admin' if is_admin else 'default',
+                'admin_view': True if is_admin else False,
+                'view_type': r['view_type'] if 'view_type' in r else 'private',
                 'compare_to_athlete_id': r['compare_to_athlete_id'],
                 'compare_to_athlete': get_athlete_dict(r['compare_to_athlete_id']),
                 'athlete_id': r['athlete_id'],

@@ -23,12 +23,16 @@
                     <span ng-show="c.completed_ts != undefined">{{c.completed_ts - c.started_ts | secondstotime}}</span>
                 </td>
                 <td data-title="'Compared to'" sortable="'compare_to_athlete.lastname'">
-                    <span ng-show="c.viewtype == 'admin'">
+                    <span ng-show="c.admin_view">
                         <a target="_blank" href="http://www.strava.com/athletes/{{c.athlete.id}}">{{c.athlete.firstname}} {{c.athlete.lastname}}</a> vs.
                     </span>
                     <span>
                         <a target="_blank" href="http://www.strava.com/athletes/{{c.compare_to_athlete_id}}">{{c.compare_to_athlete.firstname}} {{c.compare_to_athlete.lastname}}</a>
                     </span>
+                </td>
+                <td data-title="'Public'" sortable="'view_type'">
+                    <span ng-if="c.view_type != 'public'">No</span>
+                    <span ng-if="c.view_type == 'public'">Yes</span>
                 </td>
                 <td data-title="'How many segments in common?'" sortable="'comparisons_count'">{{c.comparisons_count}}</td>
                 <td><span class="glyphicon glyphicon-trash" ng-click="deleteComparison(c.id)"></span></td>
