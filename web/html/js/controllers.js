@@ -343,7 +343,7 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
 
                     for (var i=0; i<data.comparisons.length; i++) {
                         var c = data.comparisons[i];
-                        var diff = (c.compared_to_effort.moving_time - c.effort.moving_time);
+                        var diff = (c.compared_to_effort.elapsed_time - c.effort.elapsed_time);
                         sum += diff;
                         if (diff > 0) {
                             win++;
@@ -353,10 +353,10 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                             tied++;
                         }
 
-                        data.comparisons[i].per_diff = diff/c.effort.moving_time;
+                        data.comparisons[i].per_diff = diff/c.effort.elapsed_time;
 
-                        ddata.push({"x": c.effort.distance, "y": diff, "size": diff/c.effort.moving_time, "text": c.segment.name});
-                        cdata.push({"x": c.segment.average_grade, "y": diff, "size": diff/c.effort.moving_time, "text": c.segment.name});
+                        ddata.push({"x": c.effort.distance, "y": diff, "size": diff/c.effort.elapsed_time, "text": c.segment.name});
+                        cdata.push({"x": c.segment.average_grade, "y": diff, "size": diff/c.effort.elapsed_time, "text": c.segment.name});
                     }
 
                     $scope.distanceScatter = [
