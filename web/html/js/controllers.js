@@ -263,12 +263,74 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                 $scope.social_sharing = false;
           });
 
+        $scope.makePublic = function() {
+            $http.put('/api/strava/comparisons/' + $routeParams.comparisonId, {view_type:'public'})
+                .success(function (data) {
+                    $scope.view_type = 'public';
+                    $scope.public_url = determinePublicUrl(data);
+                })
+                .error(function (error) {
+                    console.log('error setting comparisons to private: ' + JSON.stringify(error));
+                    $scope.danger_message = 'This isn\'t good, there was some issue making this a public activity';
+                });
+        };
+
+        $scope.makePrivate = function() {
+            $http.put('/api/strava/comparisons/' + $routeParams.comparisonId, {view_type:'private'})
+                .success(function (data) {
+                    $scope.view_type = 'private';
+                })
+                .error(function (error) {
+                    console.log('error setting comparisons to private: ' + JSON.stringify(error));
+                    $scope.danger_message = 'Oh, well this isn\'t good... I wasn\'t able make this comparisons private';
+                });
+        };
+
+        $scope.dismissDanger = function() {
+            $scope.danger_message = null;
+        };
+
+        var determinePublicUrl = function(c) {
+            if (!c) {
+                c = $scope.comparison;
+            }
+
+            if (c && c.public_url)
+                return c.public_url
+            else
+                return window.location.protocol +
+                    '//' +
+                    window.location.hostname +
+                    '/comparisons/' + c.id;
+        };
+
+        $scope.linkCopied = function() {
+            console.log('copied');
+        }
+
         Athlete.getAthlete().then(function (athlete) {
             $scope.measure_preference = athlete.measure_preference;
 
             var retrieveComparisons = function () {
                 $http.get('/api/strava/comparisons/' + $routeParams.comparisonId).
                     success(function (data) {
+                        $scope.public_sharing = false;
+                        $http.get('/api/admin/featureFlags/publicSharing')
+                            .success(function (feature_data) {
+                                if (feature_data == 'true') {
+                                    $scope.public_sharing = true;
+                                    if (data.view_type) {
+                                        $scope.view_type = data.view_type;
+
+                                        $scope.public_url = determinePublicUrl(data);
+                                    } else
+                                        $scope.view_type = 'private';
+                                }
+                            })
+                            .error(function (error) {
+                                console.log('error determining if the publicSharing feature is turned on: ' + JSON.stringify(error));
+                            });
+
                         $scope.tableParams = new ngTableParams({
                             page: 1,
                             count: 10,

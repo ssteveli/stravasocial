@@ -125,4 +125,56 @@ fieldset[disabled] .btn-custom.active {
     display: inline-block !important;
 }
 
+.clone-url h5 {
+    margin-top: 0;
+    margin-bottom: 10px
+}
+
+.clone-url .input-group {
+    width: 100%
+}
+
+.clone-url input.input-mini {
+    font-size: 12px;
+    color: #999
+}
+
+.input-group-button {
+    width: 1%;
+    vertical-align: middle
+}
+
+@font-face {
+    font-family: 'octicons';
+    src: url("/assets/octicons.eot?#iefix") format("embedded-opentype"), url("/assets/octicons.woff") format("woff"), url("/assets/octicons.ttf") format("truetype"), url("/assets/octicons.svg") format("svg");
+    font-weight: normal;
+    font-style: normal
+}
+
+.octicon {
+    font: normal normal 16px octicons;
+    line-height: 1;
+    display: inline-block;
+    text-decoration: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none
+}
+
+.octicon-clippy:before {
+    content: '\f035'
+}
+
+.minibutton {
+    padding: 0 10px;
+    line-height: 24px;
+    margin-left: -1px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+
 

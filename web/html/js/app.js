@@ -6,7 +6,8 @@ var app = angular.module('app', [
     'myFilters',
     'nvd3ChartDirectives',
     'ui.bootstrap',
-    'LocalStorageModule'
+    'LocalStorageModule',
+    'ngClipboard'
 ]);
 
 app.run(['$rootScope', '$location', '$window', function ($rootScope, $location, $window) {
@@ -31,6 +32,10 @@ app.factory('AuthenticationService', function($window, localStorageService) {
 app.factory('Error', function() {
     return {message:undefined};
 });
+
+app.config(['ngClipProvider', function (ngClipProvider) {
+    ngClipProvider.setPath('/assets/ZeroClipboard.swf');
+}]);
 
 app.factory('Athlete', function($http, $q) {
     return {
