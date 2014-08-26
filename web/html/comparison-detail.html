@@ -140,15 +140,15 @@
                           }"
                             ng-click="tableParams.sorting({'effort.average_heartrate' : tableParams.isSortBy('effort.average_heartrate', 'asc') ? 'desc' : 'asc'})" colspan="2"><i class="glyphicon glyphicon-heart-empty"></i> Avg Heartrate</th>
                         <th class="sortable" ng-class="{
-                            'sort-asc': tableParams.isSortBy('effort.moving_time', 'asc'),
-                            'sort-desc': tableParams.isSortBy('effort.moving_time', 'desc')
+                            'sort-asc': tableParams.isSortBy('effort.elapsed_time', 'asc'),
+                            'sort-desc': tableParams.isSortBy('effort.elapsed_time', 'desc')
                           }"
-                            ng-click="tableParams.sorting({'effort.moving_time' : tableParams.isSortBy('effort.moving_time', 'asc') ? 'desc' : 'asc'})" colspan="2"><i class="glyphicon glyphicon-time"></i> Total Time</th>
+                            ng-click="tableParams.sorting({'effort.elapsed_time' : tableParams.isSortBy('effort.elapsed_time', 'asc') ? 'desc' : 'asc'})" colspan="2"><i class="glyphicon glyphicon-time"></i> Total Time</th>
                         <th class="sortable" ng-class="{
-                            'sort-asc': tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'asc'),
-                            'sort-desc': tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'desc')
+                            'sort-asc': tableParams.isSortBy('compared_to_effort.elapsed_time - effort.elapsed_time', 'asc'),
+                            'sort-desc': tableParams.isSortBy('compared_to_effort.elapsed_time - effort.elapsed_time', 'desc')
                           }"
-                            ng-click="tableParams.sorting({'compared_to_effort.moving_time - effort.moving_time' : tableParams.isSortBy('compared_to_effort.moving_time - effort.moving_time', 'asc') ? 'desc' : 'asc'})">Time<br/>Difference</th>
+                            ng-click="tableParams.sorting({'compared_to_effort.elapsed_time - effort.elapsed_time' : tableParams.isSortBy('compared_to_effort.elapsed_time - effort.elapsed_time', 'asc') ? 'desc' : 'asc'})">Time<br/>Difference</th>
                         <th class="sortable" ng-class="{
                             'sort-asc': tableParams.isSortBy('per_diff', 'asc'),
                             'sort-desc': tableParams.isSortBy('per_diff', 'desc')
@@ -168,9 +168,9 @@
                         <td ng-if="c.compared_to_effort.average_heartrate > 0">({{c.compared_to_effort.average_heartrate}})</td>
                         <td ng-if="c.compared_to_effort.average_heartrate == undefined">-</td>
 
-                        <td>{{c.effort.moving_time | seconds}}</td>
-                        <td>({{c.compared_to_effort.moving_time | seconds}})</td>
-                        <td style="text-align: right;"><span style="white-space: nowrap;" ng-class="{'red' : (c.compared_to_effort.moving_time - c.effort.moving_time) < 0}">{{c.compared_to_effort.moving_time - c.effort.moving_time | secondstotime}}</span></td>
+                        <td>{{c.effort.elapsed_time | seconds}}</td>
+                        <td>({{c.compared_to_effort.elapsed_time | seconds}})</td>
+                        <td style="text-align: right;"><span style="white-space: nowrap;" ng-class="{'red' : (c.compared_to_effort.elapsed_time - c.effort.elapsed_time) < 0}">{{c.compared_to_effort.elapsed_time - c.effort.elapsed_time | secondstotime}}</span></td>
                         <td><span ng-class="{'red':c.per_diff<0}">{{c.per_diff*100 | number:2}}</span></td>
                     </tr>
                     </tbody>
