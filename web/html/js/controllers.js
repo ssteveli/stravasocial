@@ -320,6 +320,11 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                         }
                     }
 
+                    console.log("comparison athlete id: " + data.athlete_id + ", current user: " + $scope.athlete_id);
+                    if (data.athlete_id == $scope.athlete_id) {
+                        $scope.owner = true;
+                    }
+
                     $scope.tableParams = new ngTableParams({
                         page: 1,
                         count: 10,
@@ -451,6 +456,7 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
         Athlete.getAthlete().then(function (athlete) {
             $scope.measure_preference = athlete.measure_preference;
             $scope.public_sharing = false;
+            $scope.athlete_id = athlete.athlete_id;
 
             $http.get('/api/admin/featureFlags/publicSharing')
                 .success(function (feature_data) {

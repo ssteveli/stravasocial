@@ -59,12 +59,6 @@
                     <tr ng-show="comparison.submitted_ts != undefined">
                         <td>Submitted</td><td>{{comparison.submitted_ts*1000 | date:'medium'}}</td>
                     </tr>
-                    <tr ng-show="comparison.started_ts != undefined">
-                        <td>Started</td><td>{{comparison.started_ts*1000 | date:'medium'}}</td>
-                    </tr>
-                    <tr ng-show="comparison.completed_ts != undefined">
-                        <td>Completed</td><td>{{comparison.completed_ts*1000 | date:'medium'}}</td>
-                    </tr>
                     <tr ng-show="comparison.completed_ts != undefined">
                         <td>Processing Time</td><td>{{comparison.completed_ts - comparison.started_ts | secondstotime}}</td>
                     </tr>
@@ -88,7 +82,7 @@
                         <td>Climbing WAD <i class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="Percentage you're faster or slower than {{comparison.compare_to_athlete.firstname}} with steeper segments weighted higher in the score.   See the FAQ for more details." popover-placement="bottom" popover-append-to-body="true"></i></td>
                         <td><span ng-class="{'red' : (weighted_average_climb) < 0}">{{weighted_average_climb | number:2}}%</span></td>
                     </tr>
-                    <tr ng-if="public_sharing">
+                    <tr ng-if="owner && public_sharing">
                         <td>Public Bragging
                             <i ng-if="view_type == 'public'" class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="This comparison is public and can be accessed by the URL contained here (copy it to your clipboard using the provided button), this means the world can see this comparisons.  If you'd like this to be private, click the provided link" popover-placement="bottom" popover-append-to-body="true"></i>
                             <i ng-if="view_type != 'public'" class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="Making this comparison public will allow you to share the URL of the comparison with friends, let the bragging begin!" popover-placement="bottom" popover-append-to-body="true"></i>
