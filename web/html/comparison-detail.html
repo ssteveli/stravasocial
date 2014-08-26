@@ -89,20 +89,22 @@
                         <td><span ng-class="{'red' : (weighted_average_climb) < 0}">{{weighted_average_climb | number:2}}%</span></td>
                     </tr>
                     <tr ng-if="public_sharing">
-                        <td>Public Bragging</td>
+                        <td>Public Bragging
+                            <i ng-if="view_type == 'public'" class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="This comparison is public and can be accessed by the URL contained here (copy it to your clipboard using the provided button), this means the world can see this comparisons.  If you'd like this to be private, click the provided link" popover-placement="bottom" popover-append-to-body="true"></i>
+                            <i ng-if="view_type != 'public'" class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="Making this comparison public will allow you to share the URL of the comparison with friends, let the bragging begin!" popover-placement="bottom" popover-append-to-body="true"></i>
+                        </td>
                         <td ng-if="view_type == 'public'">
                             <div class="clone-url">
                                 <div class="input-group">
                                     <input type="text" value="{{public_url}}" readonly="readonly" class="input-mini input-monospace js-url-field"/>
                                     <span class="input-group-button">
                                         <button class="minibutton" clip-copy="public_url" clip-click="linkCopied()"><span class="octicon octicon-clippy"></span></button>
-                                        <i class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="This comparison is public and can be accessed by the URL contained here (copy it to your clipboard using the provided button), this means the world can see this comparisons.  If you'd like this to be private, click the provided link" popover-placement="bottom" popover-append-to-body="true"></i>
                                     </span>
                                 </div>
                             </div>
-                            <small><a href="#" ng-click="makePrivate()">I don't want this to be public anymore</a></small>
+                            <small><a href="#" ng-click="makePrivate()">I don't want this to be public</a></small>
                         </td>
-                        <td ng-if="view_type == 'private'" colspan="2"><a ng-click="makePublic()" href="#">Make Public!</a> <i class="glyphicon glyphicon-question-sign" popover-trigger="mouseenter" popover="Making this comparison public will allow you to share the URL of the comparison with friends, let the bragging begin!" popover-placement="bottom" popover-append-to-body="true"></i></td>
+                        <td ng-if="view_type == 'private'" colspan="2"><a ng-click="makePublic()" href="#">Make this public, I want to brag!</a></td>
                     </tr>
                 </table>
             </div>
