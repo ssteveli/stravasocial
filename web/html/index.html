@@ -13,6 +13,8 @@
 		<script src="/js/angular-route.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="/js/angular-resource.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="/js/angular-local-storage.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="/js/angulartics.js" type="text/javascript" charset="utf-8"></script>
+        <script src="/js/angulartics-google-analytics.js" type="text/javascript" charset="utf-8"></script>
         <script src="/js/d3.v3.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="/js/nv-d3.min.js" type="text/javascript" charset="utf-8"></script>
         <script src="/js/angularjs-nvd3.min.js" text="text/javascript" charset="utf-8"></script>
@@ -51,17 +53,17 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="/">Segment Compare</a>
+                    <a class="navbar-brand" analytics-on="click" analytics-event="Segment Compare" analytics-category="Navigation Bar" href="/">Segment Compare</a>
                 </div>
                 <div class="collapse navbar-collapse">
                     <ul class="nav navbar-nav">
-                        <li><a href="/">Home</a></li>
-                        <li><a href="/about">FAQ</a></li>
-                        <li><a href="/comparisons">Comparisons</a></li>
+                        <li><a analytics-on="click" analytics-event="Home" analytics-category="Navigation Bar" href="/">Home</a></li>
+                        <li><a analytics-on="click" analytics-event="FAQ" analytics-category="Navigation Bar" href="/about">FAQ</a></li>
+                        <li><a analytics-on="click" analytics-event="Comparisons" analytics-category="Navigation Bar" href="/comparisons">Comparisons</a></li>
                         <!--li><a target="_blank" href="https://twitter.com/segmentcompare">@segmentcompare</a></li-->
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
-                        <li><p class="navbar-brand">Inspired by <a href="http://www.strava.com" class="poweredbystrava">STRAVA</a></p></li>
+                        <li><p class="navbar-brand">Inspired by <a analytics-on="click" analytics-event="Home" analytics-category="Strava Image" href="http://www.strava.com" class="poweredbystrava">STRAVA</a></p></li>
                     </ul>
                 </div><!--/.nav-collapse -->
             </div>
@@ -76,7 +78,6 @@
             })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
             ga('create', 'UA-53387940-1', 'auto');
-            //ga('send', 'pageview');
         </script>
         <!-- Place this tag after the last share tag. -->
         <script type="text/javascript">

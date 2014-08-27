@@ -7,7 +7,9 @@ var app = angular.module('app', [
     'nvd3ChartDirectives',
     'ui.bootstrap',
     'LocalStorageModule',
-    'ngClipboard'
+    'ngClipboard',
+    'angulartics',
+    'angulartics.google.analytics'
 ]);
 
 app.run(['$rootScope', '$location', '$window', function ($rootScope, $location, $window) {

@@ -92,20 +92,20 @@
                                 <div class="input-group">
                                     <input type="text" value="{{public_url}}" readonly="readonly" class="input-mini input-monospace js-url-field"/>
                                     <span class="input-group-button">
-                                        <button class="minibutton" clip-copy="public_url" clip-click="linkCopied()"><span class="octicon octicon-clippy"></span></button>
+                                        <button analytics-on="click" analytics-event="Make Private" analytics-category="Copy to Clipboard" class="minibutton" clip-copy="public_url" clip-click="linkCopied()"><span class="octicon octicon-clippy"></span></button>
                                     </span>
                                 </div>
                             </div>
-                            <small><a href="#" ng-click="makePrivate()">I don't want this to be public</a></small>
+                            <small><a analytics-on="click" analytics-event="Make Private" analytics-category="Comparison Detail" href="#" ng-click="makePrivate()">I don't want this to be public</a></small>
                         </td>
-                        <td ng-if="view_type == 'private'" colspan="2"><a ng-click="makePublic()" href="#">Make this public, I want to brag!</a></td>
+                        <td ng-if="view_type == 'private'" colspan="2"><a analytics-on="click" analytics-event="Make Public" analytics-category="Comparison Detail" ng-click="makePublic()" href="#">Make this public, I want to brag!</a></td>
                     </tr>
                 </table>
             </div>
         </div>
     </div>
     <tabset>
-        <tab heading="Detailed Data">
+        <tab heading="Detailed Data" select="tabSelected('Detailed Data Tab')">
             <div loading-container="tableParams.settings().$loading">
                 {{$loading}}
                 <table ng-table="tableParams" class="table">
@@ -177,7 +177,7 @@
                 </table>
             </div>
         </tab>
-        <tab heading="Distance Scatter Plot">
+        <tab heading="Distance Scatter Plot" select="tabSelected('Distance Scatter Plot Tab')">
             <div ng-if="!hovername">&nbsp;</div>
             <div ng-if="hovername" style="width: 100%; text-align: center;">{{hovername}}&nbsp;&nbsp;<span ng-class="{'red':hoverdiff<0}">{{hoverdiff*100 | number:2}}% Difference</span></div>
             <nvd3-scatter-chart
@@ -192,7 +192,7 @@
                 <svg></svg>
             </nvd3-scatter-chart>
         </tab>
-        <tab heading="Climb Scatter Plot">
+        <tab heading="Climb Scatter Plot" select="tabSelected('Climb Scatter Plot Tab')">
             <div ng-if="!hovername">&nbsp;</div>
             <div ng-if="hovername" style="width: 100%; text-align: center;">{{hovername}}&nbsp;&nbsp;<span ng-class="{'red':hoverdiff<0}">{{hoverdiff*100 | number:2}}% Difference</span></div>
             <nvd3-scatter-chart

@@ -15,8 +15,8 @@
             <tbody>
             <tr ng-repeat="c in $data">
                 <td data-title="'Executed'" sortable="'started_ts'">
-                    <span ng-show="c.started_ts != undefined"><a href="/comparisons/{{c.id}}">{{c.started_ts * 1000 | timeago}}</a></span>
-                    <span ng-show="c.started_ts == undefined"><a href="/comparisons/{{c.id}}">Waiting to start</a></span>
+                    <span ng-show="c.started_ts != undefined"><a analytics-on="click" analytics-event="Click Comparison" analytics-category="Comparisons" href="/comparisons/{{c.id}}">{{c.started_ts * 1000 | timeago}}</a></span>
+                    <span ng-show="c.started_ts == undefined"><a analytics-on="click" analytics-event="Click Comparison Before Start" analytics-category="Comparisons" ref="/comparisons/{{c.id}}">Waiting to start</a></span>
                 </td>
                 <td data-title="'Processing time'">
                     <span ng-show="c.state == 'Running'">Running</span>
@@ -28,7 +28,7 @@
                         <a target="_blank" href="http://www.strava.com/athletes/{{c.athlete.id}}">{{c.athlete.firstname}} {{c.athlete.lastname}}</a> vs.
                     </span>
                     <span>
-                        <a target="_blank" href="http://www.strava.com/athletes/{{c.compare_to_athlete_id}}">{{c.compare_to_athlete.firstname}} {{c.compare_to_athlete.lastname}}</a>
+                        <a analytics-on="click" analytics-event="Click Compared to Athlete" analytics-category="Comparisons" target="_blank" href="http://www.strava.com/athletes/{{c.compare_to_athlete_id}}">{{c.compare_to_athlete.firstname}} {{c.compare_to_athlete.lastname}}</a>
                     </span>
                 </td>
                 <td data-title="'Public'" sortable="'view_type'">
@@ -36,21 +36,21 @@
                     <span ng-if="c.view_type == 'public'">Yes</span>
                 </td>
                 <td data-title="'How many segments in common?'" sortable="'comparisons_count'">{{c.comparisons_count}}</td>
-                <td><span class="glyphicon glyphicon-trash" ng-click="deleteComparison(c.id)"></span></td>
+                <td><span class="glyphicon glyphicon-trash" analytics-on="click" analytics-event="Delete Comparison" analytics-category="Comparisons"  ng-click="deleteComparison(c.id)"></span></td>
             </tr>
             </tbody>
         </table>
     </div>
 </div>
 <div ng-controller="NewComparisonController" ng-init="scope = { isLaunchDisabled: true }" style="margin-top: 10px;">
-    <button class="btn btn-custom btn-lg" ng-click="openLaunch()">
+    <button analytics-on="click" analytics-event="New Comparison Button" analytics-category="Comparisons" class="btn btn-custom btn-lg" ng-click="openLaunch()">
         New Comparison
     </button>
     <div modal-show modal-visible="showDialog" class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <button analytics-on="click" analytics-event="New Comparison Close X" analytics-category="Comparisons" type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                     <h4 class="modal-title" id="myModalLabel">New Athlete Comparison</h4>
                 </div>
                 <div class="modal-body">
@@ -93,8 +93,8 @@
                      </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" ng-click="closeLaunch()">Close</button>
-                    <button type="button" class="btn btn-custom" ng-click="submitLaunch()" ng-disabled="isLaunchDisabled">Launch</button>
+                    <button analytics-on="click" analytics-event="New Comparison Close Button" analytics-category="Comparisons" type="button" class="btn btn-default" ng-click="closeLaunch()">Close</button>
+                    <button analytics-on="click" analytics-event="Launch Comparison Button" analytics-category="Comparisons" type="button" class="btn btn-custom" ng-click="submitLaunch()" ng-disabled="isLaunchDisabled">Launch</button>
                 </div>
                 <script type="text/javascript">
                     $('.collapse').on('hidden', function(e) {e.stopPropagation(); console.log('event: ' + JSON.stringify(e));});

@@ -246,8 +246,8 @@ appControllers.controller('NewComparisonController', ['$scope', '$http', '$resou
         };
     }]);
 
-appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$routeParams', '$timeout', '$location', '$filter', '$resource', 'ngTableParams', 'Athlete',
-    function ($scope, $http, $routeParams, $timeout, $location, $filter, $resource, ngTableParams, Athlete) {
+appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$routeParams', '$timeout', '$location', '$filter', '$resource', 'ngTableParams', 'Athlete', '$analytics',
+    function ($scope, $http, $routeParams, $timeout, $location, $filter, $resource, ngTableParams, Athlete, $analytics) {
         $scope.loading = true;
         $scope.notfound = false;
         $scope.found = true;
@@ -305,7 +305,7 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
         };
 
         $scope.linkCopied = function() {
-            console.log('copied');
+            $analytics.eventTrack(tab, {category: 'Copy to Clipboard'});
         }
 
         var retrieveComparisons = function () {
@@ -498,6 +498,8 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
         };
 
         $scope.activityTabOpened = function() {
+            $analytics.eventTrack('Activities Tab', {category: 'Comparison Detail'});
+
             if (!$scope.atableParams) {
                 $scope.loadingActivities = true;
                 Athlete.getAthlete().then(
@@ -510,6 +512,10 @@ appControllers.controller('ComparisonDetailController', ['$scope', '$http', '$ro
                         loadActivities();
                     });
             }
+        };
+
+        $scope.tabSelected = function(tab) {
+            $analytics.eventTrack(tab, {category: 'Comparison Detail'});
         };
 
         $scope.xFunction = function(){
