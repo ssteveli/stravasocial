@@ -92,17 +92,16 @@ def task_listener_compare(worker, job):
             ct.compare(days=jd['days'])
 
     except:
-        print 'error'
         log.exception('job failed')
 
-        print 'error again'
-        c.comparisons.update({'_id': ObjectId(jd['id'])}, {'$set': {
-            'state': 'Error',
-            'completed_ts': int(time()),
-            'error_message': traceback.extract_tb()
-        }}, upsert=True)
+        try:
+            c.comparisons.update({'_id': ObjectId(jd['id'])}, {'$set': {
+                'state': 'Error',
+                'completed_ts': int(time.time())
+            }}, upsert=True)
+        except:
+            log.exception('job failed, error updating comparison record')
 
-    print 'all done'
     return json_util.dumps(comparison['_id'])
 
 try:
